@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="org.apache.logging.log4j.core,org.apache.kafka.log4jappender">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{ISO8601} %-5p [%t] %c{1.} - %m%n</Property>
+        <Property name="APP_NAME">finance-portal-api</Property>
+        <Property name="KAFKA_TOPIC">${env:KAFKA_LOG_TOPIC:-app-logs}</Property>
+        <Property name="KAFKA_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender with colored output for local development -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <!-- Kafka Appender - sends JSON formatted logs to Kafka topic -->
+        <Kafka name="KafkaAppender" topic="${KAFKA_TOPIC}" ignoreExceptions="false">
+            <Property name="bootstrap.servers">${KAFKA_SERVERS}</Property>
+            <Property name="acks">1</Property>
+            <Property name="compression.type">gzip</Property>
+            <Property name="max.block.ms">2000</Property>
+            
+            <!-- JSON Layout for structured logging -->
+            <JsonLayout complete="false" compact="true" eventEol="true" properties="true">
+                <KeyValuePair key="application" value="${APP_NAME}"/>
+                <KeyValuePair key="environment" value="${env:SPRING_PROFILES_ACTIVE:-dev}"/>
+                <KeyValuePair key="hostname" value="${env:HOSTNAME:-localhost}"/>
+            </JsonLayout>
+        </Kafka>
+
+        <!-- Async Appender wrapper for Kafka to prevent blocking on log operations -->
+        <Async name="AsyncKafka" blocking="false">
+            <AppenderRef ref="KafkaAppender"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application loggers -->
+        <Logger name="com.toyotaborsa" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncKafka"/>
+        </Logger>
+
+        <!-- Spring Framework loggers -->
+        <Logger name="org.springframework" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncKafka"/>
+        </Logger>
+
+        <!-- Spring Security detailed logging (useful for debugging auth issues) -->
+        <Logger name="org.springframework.security" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncKafka"/>
+        </Logger>
+
+        <!-- Hibernate SQL logging -->
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!-- Hibernate bind parameters -->
+        <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!-- Kafka client logging (reduce noise) -->
+        <Logger name="org.apache.kafka" level="warn" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <!-- Root logger -->
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncKafka"/>
+        </Root>
+    </Loggers>
+</Configuration>
