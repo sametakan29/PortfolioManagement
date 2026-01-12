@@ -1,0 +1,61 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: finance-portal-api
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://postgres:5432/finance_portal}
+    username: ${DATASOURCE_USERNAME:finance_user}
+    password: ${DATASOURCE_PASSWORD:finance_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    client-id: ${HOSTNAME:finance-portal-api}
+    consumer:
+      group-id: finance-portal-api
+      auto-offset-reset: earliest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/finance}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://keycloak:8080/realms/finance/protocol/openid-connect/certs}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+  config: classpath:log4j2-spring.xml
+
+opentelemetry:
+  traces:
+    exporter: otlp
+  otlp:
+    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-collector:4318}
+
+jbpm:
+  kie-server-id: finance-portal
+  persistence-unit-name: org.jbpm.persistence.jpa
+
+kafka:
+  topics:
+    app-logs: ${KAFKA_LOG_TOPIC:app-logs}

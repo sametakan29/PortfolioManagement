@@ -1,0 +1,241 @@
+#hangi servisler var
+#bunlar hangi ayarlarla çalışacaklar
+#birbilerini nasıl bulacaklar
+services:
+#aşağıda çalşck uyg/servs(her biri container) bilgileri
+  postgres:
+    #paketlenmiş patgres dosyası(statik)
+    image: postgres:16
+    #container çökerse tekrar ayağa kaldır
+    restart: unless-stopped
+    #db için gerekli bilgiler
+    environment:
+      POSTGRES_DB: finance_portal
+      POSTGRES_USER: finance_user
+      POSTGRES_PASSWORD: finance_pass
+      #dış dünyaya açılan kapı,pcdeki:containerdaki port
+    ports:
+      - "5432:5432"
+    #bilgilerin containere değil docker vola kalıcı saklanması
+    #dockerin harddiski = volumes container silinse bile kalır
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      #pgsql containerımız ilk kez ayağa kalkrken bu klasördeki sql dosyasını oto çalıştır,ro =readonly
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    #pgsqli diğer servislerle aynı ağa koyar diğer ağlr yalıtı
+    networks:
+      - toyotaborsa-network
+  #kafkanın beynidir ayakta tutar/ tüm bilgiler bunda /tek uyg değil cluster yapıda
+  zookeeper:
+    #hazır kafka ayarı sunar
+    image: confluentinc/cp-zookeeper:7.5.0
+    restart: unless-stopped
+    environment:
+      #zookeeperın dinlediği port ve kafkanın bağlndğ port
+      ZOOKEEPER_CLIENT_PORT: 2181
+      #zookeeper cevap veriyor mu 2snde bir kontrol edr
+      ZOOKEEPER_TICK_TIME: 2000
+    #local debug ve kafka toollar için(ops)
+    ports:
+      - "2181:2181"
+    networks:
+      - toyotaborsa-network
+
+  #event taşıyan yüksek hacimli asenkron mesaj sistemi
+  #rest:seri bağlı kafka:paralel bağlı devre gibi isteyen dinler
+  kafka:
+    #önceden hazırlanmış temiz kurulum paketi
+    #kafka içindeki her bir sunucuya kafka broker denir
+    #kafka topic:bölümlere ayırır ve sadece sondan eklenir
+    #kafka consumer:ilgilendiği topice üye olur ve oradaki mesajları sırayla çeker
+
+    image: confluentinc/cp-kafka:7.5.0
+    restart: unless-stopped
+    environment:
+      #şuan sunucu kümemdeki 1 numaralı elemansın deriz başka sunucumuz yok(tek broker)
+      KAFKA_BROKER_ID: 1
+      #koordinasyonu soracağı kişi
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      #kafkanın dış dünyaya bıraktığı iletişim adresi bağlantı için bu adrese git
+      #plaintext=veriler şifrelenmeden düz metin gitsin
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      #tek container varken sorun çıkarmasın diye:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    #zookeper başlamadan başlatma kafkayı
+    depends_on:
+      - zookeeper
+    #host:kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - toyotaborsa-network
+
+  #logların googlesi.Db ile yapılsa yavaş ve zahmetli olurdu
+  opensearch:
+    image: opensearchproject/opensearch:2.17.0
+    restart: unless-stopped
+    environment:
+      #tek başımayım sus demeyi sağlar
+      discovery.type: single-node
+      #dev ortamında karmaşa olmasın vede keycloak iş görüyor şuan
+      DISABLE_SECURITY_PLUGIN: "true"
+      #gc delirmesin throttle yememek için
+      bootstrap.memory_lock: "true"
+      #minheap ve maxheap 512mb yap
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    #containere ne kadar ram istiyorsan ramin orasını kilitle der yoksa latency
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      #restapi(veri alışv ve sorgu)
+      - "9200:9200"
+      #monitoring içinse bunlar
+      - "9600:9600"
+    networks:
+      - toyotaborsa-network
+  #opensearchin ui kısmı kibana değil opsrch dashbrd
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.17.0
+    restart: unless-stopped
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch
+    networks:
+      - toyotaborsa-network
+
+  #kimlik deposu kullanıcı tanımlamalarının tek bir yerde tutl sağlar
+  ldap:
+    image: osixia/openldap:1.5.0
+    restart: unless-stopped
+    environment:
+      LDAP_ORGANISATION: "Toyota"
+      LDAP_DOMAIN: "toyota.local"
+      LDAP_ADMIN_PASSWORD: admin
+    ports:
+      #plain
+      - "389:389"
+      #ssl için
+      - "636:636"
+    #bu containerı silsen bile kullanıcılar saklanır
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    networks:
+      - toyotaborsa-network
+
+  #login ekranı-kullanıcı doğrl-rol verir-token üretir
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev --http-port=8080
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      #pgsql kullanır ama kendinin db i vardır ayrı olarak
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: finance_user
+      KC_DB_PASSWORD: finance_pass
+      #uygulama dondu mu ve dbe bağlanmaya hazır mı değilse containeri restartlar
+      KC_HEALTH_ENABLED: "true"
+      #o anki performansla ilgili veriler:aktif otr-giriş denm-istek resp süresi-bell kull
+      KC_METRICS_ENABLED: "true"
+    depends_on:
+      - postgres
+      - ldap
+    ports:
+      - "8080:8080"
+    networks:
+      - toyotaborsa-network
+
+  #uygl kendini anlatır:reques,response ms,req error,req şuraya gitti(postane gibi)
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    restart: unless-stopped
+    #kuralları buradan oku deriz
+    command: ["--config", "/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./infra/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      #Verinin hangi formatta paketleneceğini ve nasıl iletileceğini belirleyen standart
+      - "4317:4317" # OTLP gRPC:veriyi binary ile çok hızlı yollar 
+      - "4318:4318" # OTLP HTTP:json formatında grpc destklmeyn tary yollr
+    networks:
+      - toyotaborsa-network
+
+  backend:
+    build: #yazdığım java kodundan img üretir
+      context: ./backend/finance-portal #klasöre gider bir şeyler yapr containr yükler
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: #backende dış dünyayı anlattığım yer
+      SPRING_PROFILES_ACTIVE: dev
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance_portal
+      DATASOURCE_USERNAME: finance_user
+      DATASOURCE_PASSWORD: finance_pass
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_LOG_TOPIC: app-logs
+      #backend:ben bu keycloaktan çıkan tokenlara güveniyorum der
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/finance
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/finance/protocol/openid-connect/certs
+      #backend her istekte süre ölç,trace üretri,otele gönderir
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      - postgres
+      - kafka
+      - keycloak
+      #tomcat sprbota gömülü var
+    ports:
+      - "8081:8081"
+    networks:
+      - toyotaborsa-network
+      
+  #kafkadaki logları alıp opensearche yazan backend gibi
+  #backend log üretir-kafka taşır-logcons toplar&arş-openserch sakl&arar
+  log-consumer:
+    build:
+      context: ./backend/finance-portal
+      dockerfile: Dockerfile.log-consumer
+    restart: unless-stopped
+    environment:
+      #kafkaya bağlan-app logs topici dinle-gelen her mesajı openserch yaz
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_LOG_TOPIC: app-logs
+      OPENSEARCH_HOST: opensearch
+      OPENSEARCH_PORT: 9200
+    depends_on:
+      - kafka
+      - opensearch
+    ports:
+      - "8082:8082"
+    networks:
+      - toyotaborsa-network
+
+  frontend:
+    build:
+      context: ./frontend/finance-portal-web
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - toyotaborsa-network
+
+networks:
+  toyotaborsa-network:
+    name: toyotaborsa-network
+    driver: bridge
+
+volumes:
+  pgdata:
+  ldap_data:
+  ldap_config:

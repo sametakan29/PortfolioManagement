@@ -1,0 +1,38 @@
+{
+    "realm": "finance",
+    "enabled": true,
+    "users": [],
+    "clients": [
+        {
+            "clientId": "finance-portal",
+            "enabled": true,
+            "publicClient": true,
+            "redirectUris": [
+                "http://localhost:5173/*",
+                "http://localhost:4173/*"
+            ],
+            "webOrigins": [
+                "*"
+            ]
+        }
+    ],
+    "identityProviders": [
+        {
+            "alias": "ldap",
+            "displayName": "LDAP",
+            "providerId": "ldap",
+            "enabled": true,
+            "config": {
+                "connectionUrl": "ldap://ldap:389",
+                "usersDn": "dc=toyota,dc=local",
+                "bindDn": "cn=admin,dc=toyota,dc=local",
+                "bindCredential": "admin",
+                "useTruststoreSpi": "ldapsOnly",
+                "usernameLDAPAttribute": "uid",
+                "rdnLDAPAttribute": "uid",
+                "uuidLDAPAttribute": "entryUUID",
+                "userObjectClasses": "inetOrgPerson, organizationalPerson"
+            }
+        }
+    ]
+}
