@@ -90,6 +90,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    volumes:
+      - ./infra/opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
     ports:
       #restapi(veri alışv ve sorgu)
       - "9200:9200"
@@ -103,6 +105,9 @@ services:
     restart: unless-stopped
     environment:
       OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    volumes:
+      - ./infra/opensearch/opensearch-dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
     ports:
       - "5601:5601"
     depends_on:
@@ -133,7 +138,7 @@ services:
   #login ekranı-kullanıcı doğrl-rol verir-token üretir
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    command: start-dev --http-port=8080
+    command: start-dev --http-port=8080 --import-realm
     restart: unless-stopped
     environment:
       KEYCLOAK_ADMIN: admin
@@ -152,6 +157,8 @@ services:
       - ldap
     ports:
       - "8080:8080"
+    volumes:
+      - ./infra/keycloak/realm-export:/opt/keycloak/data/import:ro
     networks:
       - toyotaborsa-network
 
