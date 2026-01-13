@@ -88,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
                 component="nav"
                 sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
             >
-                <Drawer
+                <Drawer /*mobilde geçici açılan sol yan menü */
                     variant="temporary"
                     open={mobileOpen}
                     onClose={handleDrawerToggle}
@@ -100,7 +100,7 @@ export default function Layout({ children }: LayoutProps) {
                 >
                     {drawer}
                 </Drawer>
-                <Drawer
+                <Drawer /*pcde kalıcı sol yan menü */
                     variant="permanent"
                     sx={{
                         display: { xs: 'none', sm: 'block' },
@@ -117,7 +117,7 @@ export default function Layout({ children }: LayoutProps) {
                     flexGrow: 1,
                     p: 3,
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-                }}
+                }}/*burada render edilir kalıtımdan gelen*/
             >
                 <Toolbar />
                 {children}
