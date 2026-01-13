@@ -1,7 +1,7 @@
 import { Container, Typography, Paper, Grid, Card, CardContent } from '@mui/material'
 
 export default function Dashboard() {
-    return (
+    return (/*typography=her şey text */
         <Container maxWidth="lg">
             <Typography variant="h4" sx={{ mb: 4 }}>
                 Dashboard
