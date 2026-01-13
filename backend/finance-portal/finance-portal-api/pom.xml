@@ -90,6 +90,17 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+        <!-- RSS Feed Parser for news fetching -->
+        <dependency>
+            <groupId>com.rometools</groupId>
+            <artifactId>rome</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rometools</groupId>
+            <artifactId>rome-modules</artifactId>
+            <version>2.1.0</version>
+        </dependency>
         <!-- jBPM workflow engine - commented out until jBoss repository is configured
         <dependency>
             <groupId>org.jbpm</groupId>

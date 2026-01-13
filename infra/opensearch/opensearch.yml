@@ -1,0 +1,13 @@
+# OpenSearch Configuration
+cluster.name: finance-cluster
+node.name: opensearch-node1
+network.host: 0.0.0.0
+
+# Security plugin disabled
+plugins.security.disabled: true
+
+# Discovery
+discovery.type: single-node
+
+# Memory
+bootstrap.memory_lock: true

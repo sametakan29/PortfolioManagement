@@ -13,3 +13,40 @@ server:
 
 logging:
   config: classpath:log4j2-spring.xml
+
+# RSS Feed Configuration for News
+news:
+  rss:
+    enabled: true
+    fetch-interval-minutes: 30 # Her 30 dakikada bir çek
+    sources:
+      # Türkiye Finans Haber Kaynakları
+      - name: "Bloomberg HT"
+        url: "https://www.bloomberght.com/rss"
+        category: GENERAL_ECONOMY
+        enabled: true
+      
+      - name: "Dünya Gazetesi Ekonomi"
+        url: "https://www.dunya.com/feed/ekonomi"
+        category: GENERAL_ECONOMY
+        enabled: true
+      
+      - name: "Hürriyet Ekonomi"
+        url: "https://www.hurriyet.com.tr/rss/ekonomi"
+        category: GENERAL_ECONOMY
+        enabled: true
+      
+      - name: "Investing.com Türkiye"
+        url: "https://tr.investing.com/rss/news.rss"
+        category: STOCK_MARKET
+        enabled: true
+      
+      - name: "Para Analiz"
+        url: "https://www.paraanaliz.com/feed/"
+        category: FOREX
+        enabled: true
+      
+      - name: "Mynet Finans"
+        url: "https://finans.mynet.com/rss/borsa"
+        category: STOCK_MARKET
+        enabled: true
