@@ -1,0 +1,108 @@
+package com.toyotaborsa.finance.scheduler;
+
+import com.toyotaborsa.finance.service.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+/**
+ * Finance data scheduler
+ * Periyodik olarak finans verilerini çeker ve cache'e yazar
+ * 
+ * Cron ifadeleri:
+ * - Her 5 dakikada bir: 0 *\/5 * * * *
+ * - Her 10 dakikada bir: 0 *\/10 * * * *
+ * - Her saat başı: 0 0 * * * *
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class FinanceDataScheduler {
+
+    private final ForexDataService forexDataService;
+    private final StockDataService stockDataService;
+    private final BondDataService bondDataService;
+    private final ViopDataService viopDataService;
+    private final FundDataService fundDataService;
+
+    /**
+     * Döviz kurlarını her 5 dakikada bir çek
+     * Kurlar sık değiştiği için daha sık güncellenir
+     */
+    @Scheduled(cron = "0 */5 * * * *")
+    @CacheEvict(value = "forexRates", allEntries = true)
+    public void refreshForexRates() {
+        log.info("Zamanlanmış görev: Döviz kurları güncelleniyor...");
+        try {
+            forexDataService.getForexRates();
+            log.info("Döviz kurları başarıyla güncellendi");
+        } catch (Exception e) {
+            log.error("Döviz kurları güncellenirken hata: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Hisse verilerini her 10 dakikada bir çek
+     * Hisse fiyatları da sık değişir
+     */
+    @Scheduled(cron = "0 */10 * * * *")
+    @CacheEvict(value = "stockData", allEntries = true)
+    public void refreshStockData() {
+        log.info("Zamanlanmış görev: Hisse verileri güncelleniyor...");
+        try {
+            stockDataService.getStocks(null);
+            log.info("Hisse verileri başarıyla güncellendi");
+        } catch (Exception e) {
+            log.error("Hisse verileri güncellenirken hata: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Tahvil verilerini her saat başı çek
+     * Tahviller daha az değişir
+     */
+    @Scheduled(cron = "0 0 * * * *")
+    @CacheEvict(value = "bondData", allEntries = true)
+    public void refreshBondData() {
+        log.info("Zamanlanmış görev: Tahvil verileri güncelleniyor...");
+        try {
+            bondDataService.getBonds();
+            log.info("Tahvil verileri başarıyla güncellendi");
+        } catch (Exception e) {
+            log.error("Tahvil verileri güncellenirken hata: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * VIOP verilerini her 10 dakikada bir çek
+     */
+    @Scheduled(cron = "0 */10 * * * *")
+    @CacheEvict(value = "viopData", allEntries = true)
+    public void refreshViopData() {
+        log.info("Zamanlanmış görev: VIOP verileri güncelleniyor...");
+        try {
+            viopDataService.getViopInstruments();
+            log.info("VIOP verileri başarıyla güncellendi");
+        } catch (Exception e) {
+            log.error("VIOP verileri güncellenirken hata: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Fon verilerini her saat başı çek
+     * Fonlar günde bir kez güncellenir genelde
+     */
+    @Scheduled(cron = "0 0 * * * *")
+    @CacheEvict(value = "fundData", allEntries = true)
+    public void refreshFundData() {
+        log.info("Zamanlanmış görev: Fon verileri güncelleniyor...");
+        try {
+            fundDataService.getFunds();
+            log.info("Fon verileri başarıyla güncellendi");
+        } catch (Exception e) {
+            log.error("Fon verileri güncellenirken hata: {}", e.getMessage());
+        }
+    }
+}
