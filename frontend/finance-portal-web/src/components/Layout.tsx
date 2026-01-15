@@ -18,6 +18,7 @@ import {
     Dashboard as DashboardIcon,
     AccountBalance as PortfolioIcon,
     Article as NewsIcon,
+    ShowChart as StocksIcon,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 
@@ -38,6 +39,7 @@ export default function Layout({ children }: LayoutProps) {
     const menuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
         { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
+        { text: 'Hisse & Kurlar', icon: <StocksIcon />, path: '/stocks' },
         { text: 'Haberler', icon: <NewsIcon />, path: '/news' },
     ]
 
