@@ -95,3 +95,25 @@ finance:
       api-url: ${FUND_API_URL:}
       # Örnek: https://www.tefas.gov.tr/api
       # Örnek: https://www.spk.gov.tr/api
+
+# Cache Configuration
+cache:
+  # Cache süreleri (dakika cinsinden)
+  forex-ttl: 5      # Döviz kurları 5 dakika
+  stock-ttl: 10     # Hisse verileri 10 dakika
+  bond-ttl: 60      # Tahvil verileri 60 dakika
+  viop-ttl: 10      # VIOP verileri 10 dakika
+  fund-ttl: 60      # Fon verileri 60 dakika
+
+# Scheduler Configuration
+scheduler:
+  enabled: ${SCHEDULER_ENABLED:true}
+  # Cron ifadeleri için:
+  # - Her 5 dakika: 0 */5 * * * *
+  # - Her 10 dakika: 0 */10 * * * *
+  # - Her saat: 0 0 * * * *
+  forex-cron: ${FOREX_REFRESH_CRON:0 */5 * * * *}
+  stock-cron: ${STOCK_REFRESH_CRON:0 */10 * * * *}
+  bond-cron: ${BOND_REFRESH_CRON:0 0 * * * *}
+  viop-cron: ${VIOP_REFRESH_CRON:0 */10 * * * *}
+  fund-cron: ${FUND_REFRESH_CRON:0 0 * * * *}
