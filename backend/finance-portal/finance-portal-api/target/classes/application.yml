@@ -50,3 +50,48 @@ news:
         url: "https://finans.mynet.com/rss/borsa"
         category: STOCK_MARKET
         enabled: true
+
+# Finance API Configuration
+# Her kategori için sadece API Key ve URL verin
+# Herhangi bir API sağlayıcısı kullanabilirsiniz
+finance:
+  api:
+    # Döviz Kuru API
+    forex:
+      enabled: ${FOREX_ENABLED:false}
+      api-key: ${FOREX_API_KEY:}
+      api-url: ${FOREX_API_URL:}
+      # Örnek: https://www.tcmb.gov.tr/kurlar/today.xml
+      # Örnek: https://www.alphavantage.co/query
+      # Örnek: https://finnhub.io/api/v1
+    
+    # Hisse Senedi API
+    stock:
+      enabled: ${STOCK_ENABLED:false}
+      api-key: ${STOCK_API_KEY:}
+      api-url: ${STOCK_API_URL:}
+      # Örnek: https://www.alphavantage.co/query
+      # Örnek: https://finnhub.io/api/v1
+      # Örnek: https://api.polygon.io
+    
+    # Tahvil/Bono API
+    bond:
+      enabled: ${BOND_ENABLED:false}
+      api-key: ${BOND_API_KEY:}
+      api-url: ${BOND_API_URL:}
+      # Örnek: https://api.fiscaldata.treasury.gov
+    
+    # VIOP API
+    viop:
+      enabled: ${VIOP_ENABLED:false}
+      api-key: ${VIOP_API_KEY:}
+      api-url: ${VIOP_API_URL:}
+      # Örnek: https://www.borsaistanbul.com/api
+    
+    # Fon API
+    fund:
+      enabled: ${FUND_ENABLED:false}
+      api-key: ${FUND_API_KEY:}
+      api-url: ${FUND_API_URL:}
+      # Örnek: https://www.tefas.gov.tr/api
+      # Örnek: https://www.spk.gov.tr/api

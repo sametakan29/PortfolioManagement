@@ -98,5 +98,3 @@ export const newsApi = {
     deleteNews: (id: number) =>
         apiClient.delete(`/news/${id}`),
 }
-
-export default apiClient
