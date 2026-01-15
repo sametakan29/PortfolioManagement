@@ -26,8 +26,8 @@ public class FinanceApiConfig {
         private String apiUrl;
 
         public boolean isConfigured() {
-            return enabled && apiKey != null && !apiKey.isEmpty()
-                    && apiUrl != null && !apiUrl.isEmpty();
+            // API key opsiyonel (TCMB gibi bazı API'ler key gerektirmez)
+            return enabled && apiUrl != null && !apiUrl.isEmpty();
         }
     }
 }

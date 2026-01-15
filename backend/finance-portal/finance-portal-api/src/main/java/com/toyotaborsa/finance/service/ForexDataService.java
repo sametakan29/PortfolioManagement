@@ -7,7 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,29 +48,103 @@ public class ForexDataService {
 
     @Cacheable(value = "forexRates", cacheManager = "cacheManager")
     public Map<String, ForexRate> getForexRates() {
-        if (!apiConfig.getForex().isConfigured()) {
+        // TCMB için API key kontrolü yapma, sadece URL kontrolü yap
+        String apiUrl = apiConfig.getForex().getApiUrl();
+
+        if (!apiConfig.getForex().isEnabled() || apiUrl == null || apiUrl.isEmpty()) {
             log.warn("Forex API yapılandırılmamış, placeholder veri döndürülüyor");
             return getPlaceholderData();
         }
 
-        String apiKey = apiConfig.getForex().getApiKey();
-        String apiUrl = apiConfig.getForex().getApiUrl();
-
-        log.info("Forex verileri çekiliyor - URL: {}", apiUrl);
+        log.info("TCMB'den döviz kurları çekiliyor - URL: {}", apiUrl);
 
         try {
-            // TODO: API entegrasyonu yapılacak
-            // API'den veri çekmek için:
-            // 1. RestTemplate veya HttpClient kullan
-            // 2. apiUrl ve apiKey ile istek at
-            // 3. Response'u ForexRate objesine dönüştür
-            // Örnek: GET {apiUrl}/rates?apikey={apiKey}
+            // TCMB XML API'den veri çek
+            String xmlContent = restTemplate.getForObject(apiUrl, String.class);
 
-            return getPlaceholderData();
+            if (xmlContent == null || xmlContent.isEmpty()) {
+                log.warn("TCMB'den boş response geldi");
+                return getPlaceholderData();
+            }
+
+            // XML'i parse et
+            Map<String, ForexRate> rates = parseTcmbXml(xmlContent);
+            log.info("TCMB'den {} döviz kuru başarıyla alındı", rates.size());
+
+            return rates;
         } catch (Exception e) {
-            log.error("Forex verileri alınırken hata oluştu: {}", e.getMessage());
+            log.error("TCMB'den döviz kurları alınırken hata: {}", e.getMessage(), e);
             return getPlaceholderData();
         }
+    }
+
+    /**
+     * TCMB XML formatını parse eder
+     */
+    private Map<String, ForexRate> parseTcmbXml(String xmlContent) {
+        Map<String, ForexRate> rates = new HashMap<>();
+
+        try {
+            // XML parser'ı güvenli ayarlarla oluştur
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xmlContent)));
+
+            NodeList currencyList = doc.getElementsByTagName("Currency");
+
+            // Her currency elementini işle
+            for (int i = 0; i < currencyList.getLength(); i++) {
+                Element currencyElement = (Element) currencyList.item(i);
+                String code = currencyElement.getAttribute("Kod");
+
+                // ForexBuying (alış) ve ForexSelling (satış) kurlarını al
+                String buyingStr = getElementText(currencyElement, "ForexBuying");
+                String sellingStr = getElementText(currencyElement, "ForexSelling");
+                String nameStr = getElementText(currencyElement, "CurrencyName");
+
+                if (buyingStr == null || buyingStr.isEmpty()) {
+                    continue; // Forex kuru yoksa atla
+                }
+
+                Double buying = Double.parseDouble(buyingStr);
+                Double selling = sellingStr != null && !sellingStr.isEmpty()
+                        ? Double.parseDouble(sellingStr)
+                        : buying;
+
+                // Ortalama kur
+                Double avgRate = (buying + selling) / 2.0;
+
+                ForexRate rate = new ForexRate(code + "/TRY", avgRate, nameStr);
+                rate.setBid(buying);
+                rate.setAsk(selling);
+
+                rates.put(code + "/TRY", rate);
+            }
+
+        } catch (Exception e) {
+            log.error("TCMB XML parse hatası: {}", e.getMessage(), e);
+        }
+
+        return rates;
+    }
+
+    /**
+     * XML elementinden text içeriğini güvenli şekilde alır
+     */
+    private String getElementText(Element parent, String tagName) {
+        try {
+            NodeList nodeList = parent.getElementsByTagName(tagName);
+            if (nodeList.getLength() > 0) {
+                return nodeList.item(0).getTextContent();
+            }
+        } catch (Exception e) {
+            log.debug("Element okunamadı: {}", tagName);
+        }
+        return null;
     }
 
     private Map<String, ForexRate> getPlaceholderData() {
