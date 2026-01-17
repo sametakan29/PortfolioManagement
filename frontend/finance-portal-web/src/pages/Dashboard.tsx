@@ -1,7 +1,7 @@
-import { Container, Typography, Paper, Grid, Card, CardContent } from '@mui/material'
+import { Container, Typography, Grid, Card, CardContent } from '@mui/material'
 
 export default function Dashboard() {
-    return (/*typography=her şey text */
+    return (
         <Container maxWidth="lg">
             <Typography variant="h4" sx={{ mb: 4 }}>
                 Dashboard
@@ -11,10 +11,10 @@ export default function Dashboard() {
                     <Card>
                         <CardContent>
                             <Typography color="textSecondary" gutterBottom>
-                                Total Portfolio Value
+                                Toplam Portföy Değeri
                             </Typography>
                             <Typography variant="h5" component="div">
-                                $125,430.50
+                                ₺125,430.50
                             </Typography>
                         </CardContent>
                     </Card>
@@ -23,7 +23,7 @@ export default function Dashboard() {
                     <Card>
                         <CardContent>
                             <Typography color="textSecondary" gutterBottom>
-                                Active Positions
+                                Aktif Pozisyonlar
                             </Typography>
                             <Typography variant="h5" component="div">
                                 12
@@ -35,23 +35,13 @@ export default function Dashboard() {
                     <Card>
                         <CardContent>
                             <Typography color="textSecondary" gutterBottom>
-                                Pending Approvals
+                                Bekleyen İşlemler
                             </Typography>
                             <Typography variant="h5" component="div">
                                 3
                             </Typography>
                         </CardContent>
                     </Card>
-                </Grid>
-                <Grid item xs={12}>
-                    <Paper sx={{ p: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Recent Activity
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            No recent transactions.
-                        </Typography>
-                    </Paper>
                 </Grid>
             </Grid>
         </Container>

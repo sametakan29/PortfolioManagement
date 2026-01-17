@@ -11,13 +11,15 @@ import org.springframework.stereotype.Component;
  * Finance data scheduler
  * Periyodik olarak finans verilerini çeker ve cache'e yazar
  * 
- * Cron ifadeleri:
+ * Cron ifadeleri:(sn-dk-saat-gun-ay-haftanin gunu)
  * - Her 5 dakikada bir: 0 *\/5 * * * *
  * - Her 10 dakikada bir: 0 *\/10 * * * *
  * - Her saat başı: 0 0 * * * *
+ * TODO:özelleştirilmiş zamanlara koy borsa haftaso kapalı vs!
  */
-@Slf4j
-@Component
+// lombo:slf4j içerir-tekrarlı olayları kısaltır örn:get,set,log
+@Slf4j // her seferinde ayrı ayrı log nesnesi oluşturmaya gerek kalmaz log.ABC
+@Component // bu sınıf spring beani olur
 @RequiredArgsConstructor
 public class FinanceDataScheduler {
 

@@ -7,14 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,130 +22,114 @@ public class ForexDataService {
 
     @Data
     public static class ForexRate {
-        private String pair;
-        private Double rate;
-        private Double bid;
-        private Double ask;
+        private String code;
         private String name;
-        private LocalDateTime timestamp;
+        private Double rate;
+        private Double buyRate;
+        private Double sellRate;
+        private String timestamp;
 
-        public ForexRate(String pair, Double rate, String name) {
-            this.pair = pair;
-            this.rate = rate;
-            this.bid = rate;
-            this.ask = rate;
+        public ForexRate(String code, String name, Double rate) {
+            this.code = code;
             this.name = name;
-            this.timestamp = LocalDateTime.now();
+            this.rate = rate;
+            this.buyRate = rate * 0.998; // %0.2 spread ile alış
+            this.sellRate = rate * 1.002; // %0.2 spread ile satış
+            this.timestamp = LocalDateTime.now().toString();
         }
+    }
+
+    @Data
+    public static class ExchangeRateApiResponse {
+        private String result;
+        private String documentation;
+        private String terms_of_use;
+        private Long time_last_update_unix;
+        private String time_last_update_utc;
+        private Long time_next_update_unix;
+        private String time_next_update_utc;
+        private String base_code;
+        private Map<String, Double> conversion_rates;
     }
 
     @Cacheable(value = "forexRates", cacheManager = "cacheManager")
     public Map<String, ForexRate> getForexRates() {
-        // TCMB için API key kontrolü yapma, sadece URL kontrolü yap
         String apiUrl = apiConfig.getForex().getApiUrl();
+        String apiKey = apiConfig.getForex().getApiKey();
 
-        if (!apiConfig.getForex().isEnabled() || apiUrl == null || apiUrl.isEmpty()) {
+        if (!apiConfig.getForex().isEnabled() || apiUrl == null || apiUrl.isEmpty() || apiKey == null
+                || apiKey.isEmpty()) {
             log.warn("Forex API yapılandırılmamış, placeholder veri döndürülüyor");
             return getPlaceholderData();
         }
 
-        log.info("TCMB'den döviz kurları çekiliyor - URL: {}", apiUrl);
+        log.info("ExchangeRate-API'den döviz kurları çekiliyor");
 
         try {
-            // TCMB XML API'den veri çek
-            String xmlContent = restTemplate.getForObject(apiUrl, String.class);
+            // ExchangeRate-API'den veri çek
+            String url = String.format("%s/%s/latest/TRY", apiUrl, apiKey);
+            ExchangeRateApiResponse response = restTemplate.getForObject(url, ExchangeRateApiResponse.class);
 
-            if (xmlContent == null || xmlContent.isEmpty()) {
-                log.warn("TCMB'den boş response geldi");
+            if (response == null || !"success".equals(response.getResult())) {
+                log.warn("ExchangeRate-API'den geçersiz response geldi");
                 return getPlaceholderData();
             }
 
-            // XML'i parse et
-            Map<String, ForexRate> rates = parseTcmbXml(xmlContent);
-            log.info("TCMB'den {} döviz kuru başarıyla alındı", rates.size());
+            // Top 10 döviz kurunu al
+            Map<String, ForexRate> rates = parseExchangeRateApi(response);
+            log.info("ExchangeRate-API'den {} döviz kuru başarıyla alındı", rates.size());
 
             return rates;
         } catch (Exception e) {
-            log.error("TCMB'den döviz kurları alınırken hata: {}", e.getMessage(), e);
+            log.error("ExchangeRate-API'den döviz kurları alınırken hata: {}", e.getMessage(), e);
             return getPlaceholderData();
         }
     }
 
     /**
-     * TCMB XML formatını parse eder
+     * ExchangeRate-API response'unu parse eder ve top 10 döviz kurunu döndürür
      */
-    private Map<String, ForexRate> parseTcmbXml(String xmlContent) {
+    private Map<String, ForexRate> parseExchangeRateApi(ExchangeRateApiResponse response) {
         Map<String, ForexRate> rates = new HashMap<>();
 
+        // Top 10 para birimi ve Türkçe isimleri
+        Map<String, String> top10Currencies = new HashMap<>();
+        top10Currencies.put("USD", "Amerikan Doları");
+        top10Currencies.put("EUR", "Euro");
+        top10Currencies.put("GBP", "İngiliz Sterlini");
+        top10Currencies.put("CHF", "İsviçre Frangı");
+        top10Currencies.put("CAD", "Kanada Doları");
+        top10Currencies.put("AUD", "Avustralya Doları");
+        top10Currencies.put("JPY", "Japon Yeni");
+        top10Currencies.put("SAR", "Suudi Arabistan Riyali");
+        top10Currencies.put("RUB", "Rus Rublesi");
+        top10Currencies.put("KWD", "Kuveyt Dinarı");
+
         try {
-            // XML parser'ı güvenli ayarlarla oluştur
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            Map<String, Double> conversionRates = response.getConversion_rates();
 
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(xmlContent)));
+            for (Map.Entry<String, String> entry : top10Currencies.entrySet()) {
+                String code = entry.getKey();
+                String name = entry.getValue();
 
-            NodeList currencyList = doc.getElementsByTagName("Currency");
-
-            // Her currency elementini işle
-            for (int i = 0; i < currencyList.getLength(); i++) {
-                Element currencyElement = (Element) currencyList.item(i);
-                String code = currencyElement.getAttribute("Kod");
-
-                // ForexBuying (alış) ve ForexSelling (satış) kurlarını al
-                String buyingStr = getElementText(currencyElement, "ForexBuying");
-                String sellingStr = getElementText(currencyElement, "ForexSelling");
-                String nameStr = getElementText(currencyElement, "CurrencyName");
-
-                if (buyingStr == null || buyingStr.isEmpty()) {
-                    continue; // Forex kuru yoksa atla
+                Double rate = conversionRates.get(code);
+                if (rate != null && rate > 0) {
+                    // TRY bazlı olduğu için ters çeviriyoruz (1 USD = X TRY)
+                    Double tryRate = 1.0 / rate;
+                    ForexRate forexRate = new ForexRate(code, name, tryRate);
+                    rates.put(code, forexRate);
                 }
-
-                Double buying = Double.parseDouble(buyingStr);
-                Double selling = sellingStr != null && !sellingStr.isEmpty()
-                        ? Double.parseDouble(sellingStr)
-                        : buying;
-
-                // Ortalama kur
-                Double avgRate = (buying + selling) / 2.0;
-
-                ForexRate rate = new ForexRate(code + "/TRY", avgRate, nameStr);
-                rate.setBid(buying);
-                rate.setAsk(selling);
-
-                rates.put(code + "/TRY", rate);
             }
 
         } catch (Exception e) {
-            log.error("TCMB XML parse hatası: {}", e.getMessage(), e);
+            log.error("ExchangeRate-API parse hatası: {}", e.getMessage(), e);
         }
 
         return rates;
     }
 
-    /**
-     * XML elementinden text içeriğini güvenli şekilde alır
-     */
-    private String getElementText(Element parent, String tagName) {
-        try {
-            NodeList nodeList = parent.getElementsByTagName(tagName);
-            if (nodeList.getLength() > 0) {
-                return nodeList.item(0).getTextContent();
-            }
-        } catch (Exception e) {
-            log.debug("Element okunamadı: {}", tagName);
-        }
-        return null;
-    }
-
+    //
     private Map<String, ForexRate> getPlaceholderData() {
-        Map<String, ForexRate> rates = new HashMap<>();
-        rates.put("USD/TRY", new ForexRate("USD/TRY", 0.0, "US Dollar"));
-        rates.put("EUR/TRY", new ForexRate("EUR/TRY", 0.0, "Euro"));
-        rates.put("GBP/TRY", new ForexRate("GBP/TRY", 0.0, "British Pound"));
-        rates.put("JPY/TRY", new ForexRate("JPY/TRY", 0.0, "Japanese Yen"));
-        return rates;
+        return new HashMap<>();
     }
 }

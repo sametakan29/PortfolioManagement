@@ -59,11 +59,10 @@ finance:
     # Döviz Kuru API
     forex:
       enabled: ${FOREX_ENABLED:true}
-      api-key: ${FOREX_API_KEY:}  # TCMB için gerekli değil
-      api-url: ${FOREX_API_URL:https://www.tcmb.gov.tr/kurlar/today.xml}
-      # Örnek: https://www.tcmb.gov.tr/kurlar/today.xml (TCMB - ÜCRETSİZ, API key gerektirmez)
-      # Örnek: https://www.alphavantage.co/query
-      # Örnek: https://finnhub.io/api/v1
+      api-key: ${FOREX_API_KEY:75fc64dc8d2bb1b09f1c0da0}
+      api-url: ${FOREX_API_URL:https://v6.exchangerate-api.com/v6}
+      # ExchangeRate-API kullanılıyor
+      # Örnek: https://v6.exchangerate-api.com/v6
     
     # Hisse Senedi API
     stock:
