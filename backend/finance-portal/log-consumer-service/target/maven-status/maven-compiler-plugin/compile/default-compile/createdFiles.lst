@@ -1,0 +1,3 @@
+com\toyotaborsa\logconsumer\LogConsumerApplication.class
+com\toyotaborsa\logconsumer\config\OpenSearchConfig.class
+com\toyotaborsa\logconsumer\service\LogConsumerService.class

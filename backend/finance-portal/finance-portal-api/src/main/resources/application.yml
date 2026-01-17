@@ -4,6 +4,10 @@ spring:
   
   application:
     name: finance-portal-api
+  
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
 
 # Default properties (overridden by profile-specific files)
 server:
@@ -64,14 +68,13 @@ finance:
       # ExchangeRate-API kullanılıyor
       # Örnek: https://v6.exchangerate-api.com/v6
     
-    # Hisse Senedi API
+    # Hisse Senedi API (CollectAPI)
     stock:
-      enabled: ${STOCK_ENABLED:false}
-      api-key: ${STOCK_API_KEY:}
-      api-url: ${STOCK_API_URL:}
-      # Örnek: https://www.alphavantage.co/query
-      # Örnek: https://finnhub.io/api/v1
-      # Örnek: https://api.polygon.io
+      enabled: ${STOCK_ENABLED:true}
+      api-key: ${STOCK_API_KEY:6fmUUIn4wmhPzWQD6gRfnk:17Cc5lNxQUjkIhUl9s3iYi}
+      api-url: ${STOCK_API_URL:https://api.collectapi.com/economy/liveBorsa}
+      # CollectAPI kullanılıyor - BIST canlı hisse verileri
+      # Authorization: apikey {api-key}
     
     # Tahvil/Bono API
     bond:
