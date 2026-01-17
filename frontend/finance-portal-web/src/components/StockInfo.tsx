@@ -1,38 +1,26 @@
-import { useState, useEffect } from 'react'
-import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip } from '@mui/material'
+import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
-import { stockApi, StockData } from '../services/api'
+import { useStocks } from '../hooks/useFinanceData'
+import type { StockData } from '../services/api'
 
 export default function StockInfo() {
-    const [stocks, setStocks] = useState<Record<string, StockData>>({})
-    const [loading, setLoading] = useState(true)
+    const { data: stocks, isLoading, error } = useStocks()
 
-    useEffect(() => {
-        loadStocks()
-    }, [])
-
-    const loadStocks = async () => {
-        try {
-            const response = await stockApi.getStocks()
-            setStocks(response.data)
-        } catch (error) {
-            console.error('Hisse senetleri yüklenemedi:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const stockList = Object.entries(stocks).map(([key, value]) => ({ key, ...value }))
+    const stockList = stocks ? Object.entries(stocks).map(([key, value]) => ({ key, ...value })) : []
 
     return (
         <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-                Hisse Senetleri
+                Hisse Senetleri (Cache: 5dk)
             </Typography>
-            {loading ? (
+            {isLoading ? (
                 <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Alert severity="error">
+                    Hisse senetleri yüklenirken hata oluştu.
+                </Alert>
             ) : stockList.length > 0 ? (
                 <Grid container spacing={2}>
                     {stockList.map((stock) => (
