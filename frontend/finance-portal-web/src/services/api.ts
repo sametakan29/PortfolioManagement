@@ -25,7 +25,8 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('access_token')
-            window.location.href = '/login'
+            // Login sayfası şimdilik yok, sadece token'ı temizle
+            console.warn('401 Unauthorized - Token temizlendi')
         }
         return Promise.reject(error)
     }
