@@ -1,26 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip } from '@mui/material'
+import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
-import { fundApi, FundData } from '../services/api'
+import { useFunds } from '../hooks/useFinanceData'
+import type { FundData } from '../services/api'
 
 export default function FundInfo() {
-    const [funds, setFunds] = useState<FundData[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadFunds()
-    }, [])
-
-    const loadFunds = async () => {
-        try {
-            const response = await fundApi.getFunds()
-            setFunds(response.data)
-        } catch (error) {
-            console.error('Fon bilgileri yüklenemedi:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: funds = [], isLoading, error } = useFunds()
 
     const getFundTypeLabel = (type: string) => {
         switch (type) {
@@ -43,12 +27,16 @@ export default function FundInfo() {
     return (
         <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-                Fon Bilgileri
+                Fon Bilgileri (Cache: 30dk)
             </Typography>
-            {loading ? (
+            {isLoading ? (
                 <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Alert severity="error">
+                    Fon bilgileri yüklenirken hata oluştu.
+                </Alert>
             ) : funds.length > 0 ? (
                 <Grid container spacing={2}>
                     {funds.map((fund, index) => (

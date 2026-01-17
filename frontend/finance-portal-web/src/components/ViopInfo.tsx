@@ -1,26 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip } from '@mui/material'
+import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
-import { viopApi, ViopData } from '../services/api'
+import { useViopData } from '../hooks/useFinanceData'
+import type { ViopData } from '../services/api'
 
 export default function ViopInfo() {
-    const [viops, setViops] = useState<ViopData[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadViops()
-    }, [])
-
-    const loadViops = async () => {
-        try {
-            const response = await viopApi.getViopInstruments()
-            setViops(response.data)
-        } catch (error) {
-            console.error('VIOP enstrümanları yüklenemedi:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: viops = [], isLoading, error } = useViopData()
 
     const getViopTypeLabel = (type: string) => {
         switch (type) {
@@ -43,12 +27,16 @@ export default function ViopInfo() {
     return (
         <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-                VIOP Enstrümanları
+                VIOP Enstrümanları (Cache: 5dk)
             </Typography>
-            {loading ? (
+            {isLoading ? (
                 <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Alert severity="error">
+                    VIOP enstrümanları yüklenirken hata oluştu.
+                </Alert>
             ) : viops.length > 0 ? (
                 <Grid container spacing={2}>
                     {viops.map((viop, index) => (

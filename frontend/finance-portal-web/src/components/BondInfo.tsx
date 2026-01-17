@@ -1,25 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip } from '@mui/material'
-import { bondApi, BondData } from '../services/api'
+import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
+import { useBonds } from '../hooks/useFinanceData'
+import type { BondData } from '../services/api'
 
 export default function BondInfo() {
-    const [bonds, setBonds] = useState<BondData[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadBonds()
-    }, [])
-
-    const loadBonds = async () => {
-        try {
-            const response = await bondApi.getBonds()
-            setBonds(response.data)
-        } catch (error) {
-            console.error('Tahvil/Bono bilgileri yüklenemedi:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: bonds = [], isLoading, error } = useBonds()
 
     const getBondTypeLabel = (type: string) => {
         switch (type) {
@@ -32,12 +16,16 @@ export default function BondInfo() {
     return (
         <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-                Tahvil / Bono Bilgileri
+                Tahvil / Bono Bilgileri (Cache: 30dk)
             </Typography>
-            {loading ? (
+            {isLoading ? (
                 <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Alert severity="error">
+                    Tahvil/Bono bilgileri yüklenirken hata oluştu.
+                </Alert>
             ) : bonds.length > 0 ? (
                 <Grid container spacing={2}>
                     {bonds.map((bond, index) => (

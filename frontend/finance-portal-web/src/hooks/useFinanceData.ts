@@ -1,0 +1,179 @@
+import { useQuery } from '@tanstack/react-query'
+import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi } from '../services/api'
+import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage } from '../services/api'
+
+/**
+ * Döviz kurları hook'u
+ * Backend'de her 5 dakikada bir güncelleniyor
+ * Frontend'de 5 dakika cache'leniyor, 3 dakikada bir background'da yenileniyor
+ */
+export const useForexRates = () => {
+    return useQuery<Record<string, ForexRate>>({
+        queryKey: ['forexRates'],
+        queryFn: async () => {
+            const response = await forexApi.getForexRates()
+            return response.data
+        },
+        staleTime: 5 * 60 * 1000, // 5 dakika - backend cache ile sync
+        refetchInterval: 3 * 60 * 1000, // 3 dakikada bir background'da yenile
+    })
+}
+
+/**
+ * Hisse senetleri hook'u
+ * Backend'de her 10 dakikada bir güncelleniyor
+ * Frontend'de 5 dakika cache, 5 dakikada bir background refetch
+ */
+export const useStocks = (symbols?: string[]) => {
+    return useQuery<Record<string, StockData>>({
+        queryKey: ['stocks', symbols],
+        queryFn: async () => {
+            const response = await stockApi.getStocks(symbols)
+            return response.data
+        },
+        staleTime: 5 * 60 * 1000, // 5 dakika
+        refetchInterval: 5 * 60 * 1000, // 5 dakikada bir yenile
+    })
+}
+
+/**
+ * Tekil hisse hook'u
+ */
+export const useStock = (symbol: string) => {
+    return useQuery<StockData>({
+        queryKey: ['stock', symbol],
+        queryFn: async () => {
+            const response = await stockApi.getStock(symbol)
+            return response.data
+        },
+        staleTime: 5 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000,
+        enabled: !!symbol, // symbol varsa çalış
+    })
+}
+
+/**
+ * Tahvil verileri hook'u
+ * Backend'de her saat başı güncelleniyor
+ * Frontend'de 30 dakika cache, 30 dakikada bir refetch
+ */
+export const useBonds = () => {
+    return useQuery<BondData[]>({
+        queryKey: ['bonds'],
+        queryFn: async () => {
+            const response = await bondApi.getBonds()
+            return response.data
+        },
+        staleTime: 30 * 60 * 1000, // 30 dakika
+        refetchInterval: 30 * 60 * 1000,
+    })
+}
+
+/**
+ * VIOP verileri hook'u
+ * Backend'de her 10 dakikada bir güncelleniyor
+ */
+export const useViopData = () => {
+    return useQuery<ViopData[]>({
+        queryKey: ['viop'],
+        queryFn: async () => {
+            const response = await viopApi.getViopInstruments()
+            return response.data
+        },
+        staleTime: 5 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000,
+    })
+}
+
+/**
+ * Fon verileri hook'u
+ * Backend'de her saat başı güncelleniyor
+ */
+export const useFunds = () => {
+    return useQuery<FundData[]>({
+        queryKey: ['funds'],
+        queryFn: async () => {
+            const response = await fundApi.getFunds()
+            return response.data
+        },
+        staleTime: 30 * 60 * 1000,
+        refetchInterval: 30 * 60 * 1000,
+    })
+}
+
+/**
+ * Haberler hook'u - Paginated
+ * Backend'de RSS her 30 dakikada bir çekiliyor
+ * Frontend'de 2 dakika cache (haberler daha sık değişebilir)
+ */
+export const useNews = (page: number = 0, size: number = 20) => {
+    return useQuery<NewsPage>({
+        queryKey: ['news', page, size],
+        queryFn: async () => {
+            const response = await newsApi.getAllNews(page, size)
+            return response.data
+        },
+        staleTime: 2 * 60 * 1000, // 2 dakika
+        refetchInterval: 5 * 60 * 1000, // 5 dakikada bir kontrol et
+    })
+}
+
+/**
+ * Kategoriye göre haberler
+ */
+export const useNewsByCategory = (category: string, page: number = 0, size: number = 20) => {
+    return useQuery<NewsPage>({
+        queryKey: ['news', 'category', category, page, size],
+        queryFn: async () => {
+            const response = await newsApi.getNewsByCategory(category, page, size)
+            return response.data
+        },
+        staleTime: 2 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000,
+        enabled: !!category && category !== 'ALL', // Kategori geçerliyse çalış
+    })
+}
+
+/**
+ * Haber arama
+ */
+export const useSearchNews = (keyword: string, page: number = 0, size: number = 20) => {
+    return useQuery<NewsPage>({
+        queryKey: ['news', 'search', keyword, page, size],
+        queryFn: async () => {
+            const response = await newsApi.searchNews(keyword, page, size)
+            return response.data
+        },
+        staleTime: 1 * 60 * 1000, // Arama sonuçları 1 dakika
+        enabled: keyword.length > 0, // Keyword varsa çalış
+    })
+}
+
+/**
+ * Kategoriler listesi
+ */
+export const useNewsCategories = () => {
+    return useQuery<string[]>({
+        queryKey: ['newsCategories'],
+        queryFn: async () => {
+            const response = await newsApi.getCategories()
+            return response.data
+        },
+        staleTime: 60 * 60 * 1000, // Kategoriler nadiren değişir - 1 saat
+    })
+}
+
+/**
+ * Tekil haber detayı
+ */
+export const useNewsDetail = (id: number) => {
+    return useQuery({
+        queryKey: ['news', id],
+        queryFn: async () => {
+            const response = await newsApi.getNewsById(id)
+            return response.data
+        },
+        staleTime: 10 * 60 * 1000, // 10 dakika
+        enabled: !!id && id > 0,
+    })
+}

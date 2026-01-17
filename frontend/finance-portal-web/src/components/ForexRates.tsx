@@ -1,41 +1,30 @@
-import { useState, useEffect } from 'react'
-import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress } from '@mui/material'
-import { forexApi, ForexRate } from '../services/api'
+import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Alert } from '@mui/material'
+import { useForexRates } from '../hooks/useFinanceData'
 
 export default function ForexRates() {
-    const [forexRates, setForexRates] = useState<Record<string, ForexRate>>({})
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadForexRates()
-    }, [])
-
-    const loadForexRates = async () => {
-        try {
-            const response = await forexApi.getForexRates()
-            setForexRates(response.data)
-        } catch (error) {
-            console.error('Döviz kurları yüklenemedi:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: forexRates, isLoading, error } = useForexRates()
 
     // Top 10 döviz kurunu al - sıralı şekilde
     const top10Currencies = ['USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'SAR', 'RUB', 'KWD']
-    const topForexRates = top10Currencies
-        .filter(code => forexRates[code])
-        .map(code => forexRates[code])
+    const topForexRates = forexRates
+        ? top10Currencies
+            .filter(code => forexRates[code])
+            .map(code => forexRates[code])
+        : []
 
     return (
         <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-                Döviz Kurları (Canlı)
+                Döviz Kurları (Canlı - Cache: 5dk)
             </Typography>
-            {loading ? (
+            {isLoading ? (
                 <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Alert severity="error">
+                    Döviz kurları yüklenirken hata oluştu. Lütfen daha sonra tekrar deneyin.
+                </Alert>
             ) : topForexRates.length > 0 ? (
                 <Grid container spacing={2}>
                     {topForexRates.map((rate) => (

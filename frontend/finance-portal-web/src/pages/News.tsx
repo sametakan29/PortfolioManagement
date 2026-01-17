@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
     Box,
     Container,
@@ -22,9 +22,10 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
-import { newsApi, NewsDto, NewsPage } from '../services/api'
+import { useNews, useNewsByCategory, useSearchNews, useNewsCategories } from '../hooks/useFinanceData'
+import type { NewsDto } from '../services/api'
 
-const categoryLabels: { [key: string]: string } = {//mappingtir-merkezi yöntm-temiz arayüz
+const categoryLabels: { [key: string]: string } = {
     GENERAL_ECONOMY: 'Genel Ekonomi',
     STOCK_MARKET: 'Hisse Senedi',
     FOREX: 'Döviz',
@@ -50,61 +51,52 @@ const categoryColors: { [key: string]: any } = {
 
 const News: React.FC = () => {
     const navigate = useNavigate()
-    const [newsData, setNewsData] = useState<NewsPage | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
     const [page, setPage] = useState(0)
     const [searchKeyword, setSearchKeyword] = useState('')
+    const [searchActive, setSearchActive] = useState(false)
     const [selectedCategory, setSelectedCategory] = useState<string>('ALL')
-    const [categories, setCategories] = useState<string[]>([])
 
-    useEffect(() => {
-        loadCategories()
-    }, [])
+    // React Query hooks - Cache'li veri çekme
+    const { data: categories = [] } = useNewsCategories()
 
-    useEffect(() => {
-        loadNews()
-    }, [page, selectedCategory])
+    // Conditional queries - sadece gerekli olanı çalıştır
+    const { data: allNewsData, isLoading: allNewsLoading, error: allNewsError } = useNews(page, 20)
+    const { data: categoryNewsData, isLoading: categoryLoading, error: categoryError } = useNewsByCategory(
+        selectedCategory, page, 20
+    )
+    const { data: searchNewsData, isLoading: searchLoading, error: searchError } = useSearchNews(
+        searchKeyword, page, 20
+    )
 
-    const loadCategories = async () => {
-        try {
-            const response = await newsApi.getCategories()
-            setCategories(response.data)
-        } catch (err) {
-            console.error('Kategoriler yüklenemedi:', err)
-        }
-    }
+    // Hangi veriyi göstereceğimizi belirle
+    const newsData = searchActive && searchKeyword
+        ? searchNewsData
+        : selectedCategory !== 'ALL'
+            ? categoryNewsData
+            : allNewsData
 
-    const loadNews = async () => {
-        try {
-            setLoading(true)
-            setError(null)
+    const loading = searchActive && searchKeyword
+        ? searchLoading
+        : selectedCategory !== 'ALL'
+            ? categoryLoading
+            : allNewsLoading
 
-            let response
-            if (searchKeyword) {
-                response = await newsApi.searchNews(searchKeyword, page, 20)
-            } else if (selectedCategory && selectedCategory !== 'ALL') {
-                response = await newsApi.getNewsByCategory(selectedCategory, page, 20)
-            } else {
-                response = await newsApi.getAllNews(page, 20)
-            }
-
-            setNewsData(response.data)
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Haberler yüklenirken bir hata oluştu')
-        } finally {
-            setLoading(false)
-        }
-    }
+    const error = searchActive && searchKeyword
+        ? searchError
+        : selectedCategory !== 'ALL'
+            ? categoryError
+            : allNewsError
 
     const handleSearch = () => {
         setPage(0)
-        loadNews()
+        setSearchActive(true)
+        setSelectedCategory('ALL')
     }
 
     const handleCategoryChange = (category: string) => {
         setSelectedCategory(category)
         setSearchKeyword('')
+        setSearchActive(false)
         setPage(0)
     }
 
@@ -131,7 +123,7 @@ const News: React.FC = () => {
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
             <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 'bold' }}>
-                Finans Haberleri
+                Finans Haberleri (Cache: 2dk)
             </Typography>
 
             {/* Search and Filter Section */}
@@ -182,7 +174,7 @@ const News: React.FC = () => {
             {/* Error State */}
             {error && (
                 <Alert severity="error" sx={{ mb: 4 }}>
-                    {error}
+                    Haberler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.
                 </Alert>
             )}
 
