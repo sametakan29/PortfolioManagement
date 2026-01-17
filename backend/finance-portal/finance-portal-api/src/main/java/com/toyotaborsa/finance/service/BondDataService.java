@@ -66,10 +66,6 @@ public class BondDataService {
     }
 
     private List<BondData> getPlaceholderData() {
-        List<BondData> bonds = new ArrayList<>();
-        bonds.add(new BondData("TR010", "Devlet Tahvili 2025", "BOND"));
-        bonds.add(new BondData("TR020", "Hazine Bonosu 3 Ay", "TREASURY_BILL"));
-        bonds.add(new BondData("TR030", "Devlet Tahvili 2026", "BOND"));
-        return bonds;
+        return new ArrayList<>();
     }
 }

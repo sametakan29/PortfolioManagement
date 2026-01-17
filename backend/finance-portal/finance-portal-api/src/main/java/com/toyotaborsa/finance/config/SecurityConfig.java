@@ -44,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/news/**").permitAll() // News endpoints public
                         .requestMatchers("/api/forex/**").permitAll() // Forex endpoints public (TCMB API)
+                        .requestMatchers("/api/stocks/**").permitAll() // Stock endpoints public for dev
+                        .requestMatchers("/api/bonds/**").permitAll() // Bond endpoints public for dev
+                        .requestMatchers("/api/viop/**").permitAll() // VIOP endpoints public for dev
+                        .requestMatchers("/api/funds/**").permitAll() // Fund endpoints public for dev
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))

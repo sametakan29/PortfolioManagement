@@ -67,10 +67,6 @@ public class FundDataService {
     }
 
     private List<FundData> getPlaceholderData() {
-        List<FundData> funds = new ArrayList<>();
-        funds.add(new FundData("GAH", "Garanti Portföy Hisse Senedi Fonu", "MUTUAL_FUND"));
-        funds.add(new FundData("AKH", "Ak Portföy Hisse Senedi Fonu", "MUTUAL_FUND"));
-        funds.add(new FundData("THYAO", "Türk Hava Yolları BYF", "ETF"));
-        return funds;
+        return new ArrayList<>();
     }
 }

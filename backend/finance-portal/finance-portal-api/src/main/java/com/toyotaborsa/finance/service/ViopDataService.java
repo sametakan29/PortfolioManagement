@@ -70,10 +70,6 @@ public class ViopDataService {
     }
 
     private List<ViopData> getPlaceholderData() {
-        List<ViopData> viop = new ArrayList<>();
-        viop.add(new ViopData("XU030-FEB26", "BIST 30 Vadeli İşlem", "FUTURE"));
-        viop.add(new ViopData("XU100-FEB26", "BIST 100 Vadeli İşlem", "FUTURE"));
-        viop.add(new ViopData("THYAO-FEB26-C300", "THYAO Call Opsiyonu", "OPTION_CALL"));
-        return viop;
+        return new ArrayList<>();
     }
 }

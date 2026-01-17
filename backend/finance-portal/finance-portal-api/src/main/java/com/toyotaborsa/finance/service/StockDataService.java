@@ -70,10 +70,6 @@ public class StockDataService {
     }
 
     private Map<String, StockData> getPlaceholderData() {
-        Map<String, StockData> stocks = new HashMap<>();
-        stocks.put("THYAO.IS", new StockData("THYAO.IS", "Türk Hava Yolları"));
-        stocks.put("ASELS.IS", new StockData("ASELS.IS", "Aselsan"));
-        stocks.put("GARAN.IS", new StockData("GARAN.IS", "Garanti BBVA"));
-        return stocks;
+        return new HashMap<>();
     }
 }

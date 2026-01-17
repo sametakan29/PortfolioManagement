@@ -8,4 +8,8 @@
 ->infra:kod olmayan ama uyglmnın ayakta kalmasını sağlayan her şey
 ->financrealmjson:keycloak fabrka ayarları realm:bağsız kimlk evrni
 ->pom:proje beyni-sürüm listesi-derleme talimatı
-->
+
+->caffeine:tek merkezden statik verileri(borsa) hızlı
+->redis:dinamik birden fazla sunc varsa bilgilerin ayn ol için
+
+->beanlerin içine bilgi yazılmaz işini yapar gider
