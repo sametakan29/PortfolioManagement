@@ -1,7 +1,7 @@
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useStocks } from '../hooks/useFinanceData'
-import type { StockData } from '../services/api'
+//import type { StockData } from '../services/api'
 
 export default function StockInfo() {
     const { data: stocks, isLoading, error } = useStocks()
