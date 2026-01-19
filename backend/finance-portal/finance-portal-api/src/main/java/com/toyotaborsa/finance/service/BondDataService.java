@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -45,8 +44,8 @@ public class BondDataService {
     @Cacheable(value = "bondData", cacheManager = "cacheManager")
     public List<BondData> getBonds() {
         if (!apiConfig.getBond().isConfigured()) {
-            log.warn("Bond API yapılandırılmamış, placeholder veri döndürülüyor");
-            return getPlaceholderData();
+            log.error("Bond API yapılandırılmamış! Lütfen application.yml dosyasında bond API ayarlarını yapın.");
+            throw new IllegalStateException("Bond API yapılandırılmamış");
         }
 
         String apiKey = apiConfig.getBond().getApiKey();
@@ -58,14 +57,13 @@ public class BondDataService {
             // TODO: API entegrasyonu yapılacak
             // Örnek: GET {apiUrl}/bonds?apikey={apiKey}
 
-            return getPlaceholderData();
+            throw new UnsupportedOperationException(
+                    "Bond API entegrasyonu henüz yapılmadı. API Key: " + (apiKey != null ? "mevcut" : "yok"));
+        } catch (UnsupportedOperationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Tahvil verileri alınırken hata oluştu: {}", e.getMessage());
-            return getPlaceholderData();
+            throw new RuntimeException("Tahvil verileri alınamadı", e);
         }
-    }
-
-    private List<BondData> getPlaceholderData() {
-        return new ArrayList<>();
     }
 }

@@ -156,20 +156,4 @@ public class StockDataService {
         stockNames.put("VAKBN", "Vakıfbank");
         return stockNames.getOrDefault(symbol, symbol);
     }
-
-    private Double parseDouble(String value) {
-        try {
-            return Double.parseDouble(value);
-        } catch (Exception e) {
-            return 0.0;
-        }
-    }
-
-    private Long parseLong(String value) {
-        try {
-            return Long.parseLong(value);
-        } catch (Exception e) {
-            return 0L;
-        }
-    }
 }

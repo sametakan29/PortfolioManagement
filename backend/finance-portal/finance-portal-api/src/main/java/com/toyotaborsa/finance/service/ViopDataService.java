@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -49,8 +48,8 @@ public class ViopDataService {
     @Cacheable(value = "viopData", cacheManager = "cacheManager")
     public List<ViopData> getViopInstruments() {
         if (!apiConfig.getViop().isConfigured()) {
-            log.warn("VIOP API yapılandırılmamış, placeholder veri döndürülüyor");
-            return getPlaceholderData();
+            log.error("VIOP API yapılandırılmamış! Lütfen application.yml dosyasında viop API ayarlarını yapın.");
+            throw new IllegalStateException("VIOP API yapılandırılmamış");
         }
 
         String apiKey = apiConfig.getViop().getApiKey();
@@ -62,14 +61,13 @@ public class ViopDataService {
             // TODO: API entegrasyonu yapılacak
             // Örnek: GET {apiUrl}/viop?apikey={apiKey}
 
-            return getPlaceholderData();
+            throw new UnsupportedOperationException(
+                    "VIOP API entegrasyonu henüz yapılmadı. API Key: " + (apiKey != null ? "mevcut" : "yok"));
+        } catch (UnsupportedOperationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("VIOP verileri alınırken hata oluştu: {}", e.getMessage());
-            return getPlaceholderData();
+            throw new RuntimeException("VIOP verileri alınamadı", e);
         }
-    }
-
-    private List<ViopData> getPlaceholderData() {
-        return new ArrayList<>();
     }
 }
