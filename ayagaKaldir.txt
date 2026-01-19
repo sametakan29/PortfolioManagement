@@ -1,30 +1,12 @@
-# Çalışma dizinine git
-cd c:\Users\akans\OneDrive\Masaüstü\toyotaBorsa\deneme2
+geri dönme:git reset --hard hashCodeNeise
 
-# Docker servisleri başlat (PostgreSQL, Kafka, Zookeeper, OpenSearch vb.)
-docker-compose up -d
-
-# Finance Portal klasörüne git
+Backend değişikliği için:
 cd backend/finance-portal
+mvn clean package -DskipTests
+docker-compose restart backend
 
-# Maven ile build et ve başlat
-mvn clean install -DskipTests
-mvn spring-boot:run
-
-# Frontend klasörüne git
-cd frontend/finance-portal-web
-
-# Dependencyleri yükle
-npm install
-
-# Development sunucusunu başlat
+cd ../frontend/finance-portal-web
 npm run dev
 
-# Sadece Docker servisleri için
-docker-compose up -d
-
-# Backend: Terminal 1
-cd backend/finance-portal && mvn spring-boot:run
-
-# Frontend: Terminal 2  
-cd frontend/finance-portal-web && npm install && npm run dev
+Full stack için:
+docker-compose up --build

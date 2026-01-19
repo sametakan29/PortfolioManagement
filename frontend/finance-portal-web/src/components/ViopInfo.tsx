@@ -1,7 +1,7 @@
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useViopData } from '../hooks/useFinanceData'
-import type { ViopData } from '../services/api'
+//import type { ViopData } from '../services/api'
 
 export default function ViopInfo() {
     const { data: viops = [], isLoading, error } = useViopData()

@@ -1,6 +1,6 @@
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { useBonds } from '../hooks/useFinanceData'
-import type { BondData } from '../services/api'
+//import type { BondData } from '../services/api'
 
 export default function BondInfo() {
     const { data: bonds = [], isLoading, error } = useBonds()

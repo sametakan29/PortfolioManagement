@@ -1,7 +1,7 @@
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useFunds } from '../hooks/useFinanceData'
-import type { FundData } from '../services/api'
+//import type { FundData } from '../services/api'
 
 export default function FundInfo() {
     const { data: funds = [], isLoading, error } = useFunds()
