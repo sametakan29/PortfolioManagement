@@ -8,7 +8,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -46,8 +45,8 @@ public class FundDataService {
     @Cacheable(value = "fundData", cacheManager = "cacheManager")
     public List<FundData> getFunds() {
         if (!apiConfig.getFund().isConfigured()) {
-            log.warn("Fund API yapılandırılmamış, placeholder veri döndürülüyor");
-            return getPlaceholderData();
+            log.error("Fund API yapılandırılmamış! Lütfen application.yml dosyasında fund API ayarlarını yapın.");
+            throw new IllegalStateException("Fund API yapılandırılmamış");
         }
 
         String apiKey = apiConfig.getFund().getApiKey();
@@ -59,14 +58,13 @@ public class FundDataService {
             // TODO: API entegrasyonu yapılacak
             // Örnek: GET {apiUrl}/funds?apikey={apiKey}
 
-            return getPlaceholderData();
+            throw new UnsupportedOperationException(
+                    "Fund API entegrasyonu henüz yapılmadı. API Key: " + (apiKey != null ? "mevcut" : "yok"));
+        } catch (UnsupportedOperationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Fon verileri alınırken hata oluştu: {}", e.getMessage());
-            return getPlaceholderData();
+            throw new RuntimeException("Fon verileri alınamadı", e);
         }
-    }
-
-    private List<FundData> getPlaceholderData() {
-        return new ArrayList<>();
     }
 }

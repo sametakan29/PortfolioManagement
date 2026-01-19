@@ -59,8 +59,8 @@ public class ForexDataService {
 
         if (!apiConfig.getForex().isEnabled() || apiUrl == null || apiUrl.isEmpty() || apiKey == null
                 || apiKey.isEmpty()) {
-            log.warn("Forex API yapılandırılmamış, placeholder veri döndürülüyor");
-            return getPlaceholderData();
+            log.error("Forex API yapılandırılmamış! Lütfen application.yml dosyasında forex API ayarlarını yapın.");
+            throw new IllegalStateException("Forex API yapılandırılmamış");
         }
 
         log.info("ExchangeRate-API'den döviz kurları çekiliyor");
@@ -71,8 +71,8 @@ public class ForexDataService {
             ExchangeRateApiResponse response = restTemplate.getForObject(url, ExchangeRateApiResponse.class);
 
             if (response == null || !"success".equals(response.getResult())) {
-                log.warn("ExchangeRate-API'den geçersiz response geldi");
-                return getPlaceholderData();
+                log.error("ExchangeRate-API'den geçersiz response geldi");
+                throw new RuntimeException("ExchangeRate-API'den geçersiz response geldi");
             }
 
             // Top 10 döviz kurunu al
@@ -82,7 +82,7 @@ public class ForexDataService {
             return rates;
         } catch (Exception e) {
             log.error("ExchangeRate-API'den döviz kurları alınırken hata: {}", e.getMessage(), e);
-            return getPlaceholderData();
+            throw new RuntimeException("Döviz kurları alınamadı", e);
         }
     }
 
@@ -126,10 +126,5 @@ public class ForexDataService {
         }
 
         return rates;
-    }
-
-    //
-    private Map<String, ForexRate> getPlaceholderData() {
-        return new HashMap<>();
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -83,9 +83,10 @@ public class RssFeedService {
     /**
      * Tek bir RSS feed kaynağından haberleri çeker
      */
+    @SuppressWarnings("deprecation")
     private List<News> fetchFromSource(RssFeedConfig.FeedSource source) throws Exception {
         SyndFeedInput input = new SyndFeedInput();
-        SyndFeed feed = input.build(new XmlReader(new URL(source.getUrl())));
+        SyndFeed feed = input.build(new XmlReader(URI.create(source.getUrl()).toURL()));
 
         return feed.getEntries().stream()
                 .map(entry -> convertToNews(entry, source))
