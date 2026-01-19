@@ -5,7 +5,7 @@ cd backend/finance-portal
 mvn clean package -DskipTests
 docker-compose restart backend
 
-cd ../frontend/finance-portal-web
+cd C:\Users\akans\OneDrive\Masaüstü\toyotaBorsa\deneme2\frontend\finance-portal-web
 npm run dev
 
 Full stack için:
