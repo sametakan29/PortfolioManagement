@@ -1,5 +1,25 @@
+/**
+ * API Servis Modülü
+ * 
+ * Bu modül, backend API ile iletişim kurmak için kullanılan tüm HTTP istemci
+ * fonksiyonlarını içerir. Axios kullanılarak merkezi bir API istemcisi oluşturulmuştur.
+ * 
+ * Özellikler:
+ * - JWT token ile otomatik yetkilendirme (Bearer token)
+ * - 401 hatalarında otomatik token temizleme
+ * - Döviz, hisse, tahvil, VIOP, fon ve haber API'leri
+ * 
+ * Kullanım: İlgili API fonksiyonlarını import ederek kullanın
+ * Örnek: import { newsApi, forexApi } from './api'
+ */
+
 import axios from 'axios'
 
+/**
+ * Merkezi Axios istemcisi
+ * - Base URL: Environment değişkeninden veya '/api' prefix'i
+ * - Content-Type: JSON
+ */
 const apiClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
     headers: {
@@ -7,10 +27,17 @@ const apiClient = axios.create({
     },
 })
 
+/**
+ * Request Interceptor
+ * Her HTTP isteğine otomatik olarak JWT token ekler.
+ * Token localStorage'dan 'access_token' key'i ile alınır.
+ */
 apiClient.interceptors.request.use(
     (config) => {
+        // LocalStorage'dan JWT token'ı al
         const token = localStorage.getItem('access_token')
         if (token) {
+            // Authorization header'ına Bearer token ekle
             config.headers.Authorization = `Bearer ${token}`
         }
         return config
@@ -20,12 +47,19 @@ apiClient.interceptors.request.use(
     }
 )
 
+/**
+ * Response Interceptor
+ * HTTP yanıtlarını işler ve hata durumlarını yönetir.
+ * 401 Unauthorized hatası durumunda token otomatik temizlenir.
+ */
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
+        // 401 hatası: Oturum süresi dolmuş veya geçersiz token
         if (error.response?.status === 401) {
+            // Token'ı localStorage'dan temizle
             localStorage.removeItem('access_token')
-            // Login sayfası şimdilik yok, sadece token'ı temizle
+            // NOT: Login sayfası entegre edildiğinde yönlendirme eklenecek
             console.warn('401 Unauthorized - Token temizlendi')
         }
         return Promise.reject(error)

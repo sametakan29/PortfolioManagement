@@ -1,4 +1,4 @@
-geri dönme:git reset --hard hashCodeNeise
+geri dönme:git reset --hard a39e0b8a8a5c46f19d4a65d72ff8966c17ac73d3
 
 Backend değişikliği için:
 cd backend/finance-portal
@@ -10,3 +10,4 @@ npm run dev
 
 Full stack için:
 docker-compose up --build
+docker-compose build --no-cache frontend

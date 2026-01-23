@@ -1,3 +1,15 @@
+/**
+ * Döviz Kurları Komponenti
+ * 
+ * Bu komponent döviz kurlarını kart görünümünde listeler.
+ * Veriler useForexRates hook'u ile API'den çekilir (5 dk cache).
+ * 
+ * Gösterilen Kurlar:
+ * USD, EUR, GBP, CHF, CAD, AUD, JPY, SAR, RUB, KWD
+ * 
+ * Her kur için alış, satış ve ortalama fiyat gösterilir.
+ */
+
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Alert } from '@mui/material'
 import { useForexRates } from '../hooks/useFinanceData'
 

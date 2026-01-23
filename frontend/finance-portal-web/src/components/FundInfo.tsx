@@ -1,3 +1,17 @@
+/**
+ * Fon Bilgileri Komponenti
+ * 
+ * Bu komponent yatırım fonlarını kart görünümünde listeler.
+ * Veriler useFunds hook'u ile API'den çekilir (30 dk cache).
+ * 
+ * Fon Türleri:
+ * - MUTUAL_FUND: Yatırım Fonu
+ * - ETF: Borsa Yatırım Fonu
+ * - PENSION_FUND: Emeklilik Fonu
+ * 
+ * Her fon için: Fiyat, değişim, toplam varlık, yıllık getiri
+ */
+
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useFunds } from '../hooks/useFinanceData'

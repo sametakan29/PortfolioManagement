@@ -13,3 +13,4 @@
 ->redis:dinamik birden fazla sunc varsa bilgilerin ayn ol için
 
 ->beanlerin içine bilgi yazılmaz işini yapar gider
+->backend cache:caffeine:db yükünü azaltır
