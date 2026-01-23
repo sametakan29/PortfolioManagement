@@ -1,3 +1,16 @@
+/**
+ * VİOP Enstrümanları Komponenti
+ * 
+ * Bu komponent VİOP (Vadeli İşlem ve Opsiyon Piyasası) verilerini listeler.
+ * Veriler useViopData hook'u ile API'den çekilir (5 dk cache).
+ * 
+ * Her enstrüman için gösterilen bilgiler:
+ * - Sembol ve tür (Vadeli İşlem, Alım/Satım Opsiyonu)
+ * - Fiyat ve yüzdelik değişim
+ * - İşlem hacmi ve açık pozisyon
+ * - Vade tarihi
+ */
+
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useViopData } from '../hooks/useFinanceData'

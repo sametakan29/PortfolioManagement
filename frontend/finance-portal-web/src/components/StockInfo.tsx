@@ -1,3 +1,16 @@
+/**
+ * Hisse Senedi Bilgileri Komponenti
+ * 
+ * Bu komponent hisse senetlerini kart görünümünde listeler.
+ * Veriler useStocks hook'u ile API'den çekilir (5 dk cache).
+ * 
+ * Her hisse için gösterilen bilgiler:
+ * - Sembol ve şirket adı
+ * - Güncel fiyat
+ * - Yüzdelik değişim (renk kodlu)
+ * - İşlem hacmi
+ */
+
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { TrendingUp, TrendingDown } from '@mui/icons-material'
 import { useStocks } from '../hooks/useFinanceData'

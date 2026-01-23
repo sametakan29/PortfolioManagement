@@ -1,3 +1,18 @@
+/**
+ * Finans Haberleri Sayfası
+ * 
+ * Bu sayfa RSS kaynaklarından çekilen finans haberlerini listeler.
+ * React Query ile 2 dakika cache, 5 dakikada bir otomatik yenileme.
+ * 
+ * Özellikler:
+ * - Kategori bazlı filtreleme (Ekonomi, Hisse, Döviz vb.)
+ * - Anahtar kelime araması
+ * - Sayfalama (pagination)
+ * - Haber detay sayfasına yönlendirme
+ * 
+ * API: newsApi.getAllNews(), newsApi.getNewsByCategory(), newsApi.searchNews()
+ */
+
 import React, { useState } from 'react'
 import {
     Box,

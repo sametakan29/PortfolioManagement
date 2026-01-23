@@ -1,3 +1,22 @@
+/**
+ * Finans Verileri React Query Hook'ları
+ * 
+ * Bu modül, tüm finans verilerini API'den çekmek için kullanılan
+ * React Query hook'larını içerir.
+ * 
+ * Cache Stratejisi:
+ * - Döviz: 5 dk cache, 3 dk background refetch (sık değişen veri)
+ * - Hisse: 5 dk cache, 5 dk refetch (orta sıklıkta değişir)
+ * - Tahvil/Fon: 30 dk cache (nadir değişir)
+ * - Haberler: 2 dk cache (sık güncellenir)
+ * - Kategoriler: 1 saat cache (nadiren değişir)
+ * 
+ * Kullanım Örneği:
+ * const { data, isLoading, error } = useForexRates()
+ * 
+ * @module useFinanceData
+ */
+
 import { useQuery } from '@tanstack/react-query'
 import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi } from '../services/api'
 import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage } from '../services/api'

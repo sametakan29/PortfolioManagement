@@ -1,3 +1,16 @@
+/**
+ * Tahvil/Bono Bilgileri Komponenti
+ * 
+ * Bu komponent tahvil ve bono verilerini kart görünümünde listeler.
+ * Veriler useBonds hook'u ile API'den çekilir (30 dk cache).
+ * 
+ * Her tahvil için gösterilen bilgiler:
+ * - Sembol ve ad
+ * - Fiyat ve getiri oranı
+ * - Kupon oranı
+ * - Vade tarihi
+ */
+
 import { Paper, Typography, Grid, Card, CardContent, Box, CircularProgress, Chip, Alert } from '@mui/material'
 import { useBonds } from '../hooks/useFinanceData'
 //import type { BondData } from '../services/api'
