@@ -16,19 +16,19 @@ Finance Portal uygulamasında **iki katmanlı cache stratejisi** uygulanmıştı
 ```java
 Cache Özellikleri:
 - Maximum Size: 1000 kayıt
-- Expire After Write: 5 dakika
-- Expire After Access: 3 dakika (son erişimden sonra)
-- Cache Engine: Caffeine (Guava'nın gelişmiş versiyonu)
+- Expire After Write: Veri tipine göre değişken (8-90 dk)
+- Cache Engine: Caffeine (yüksek performanslı in-memory cache)
+- Buffer Strategy: Scheduler süresinden %50-60 daha uzun (gecikme koruması)
 ```
 
 ### Cache'lenen Veri Tipleri
-| Cache Adı    | Veri Tipi          | Süre |
-| ------------ | ------------------ | ---- |
-| `forexRates` | Döviz Kurları      | 5 dk |
-| `stockData`  | Hisse Verileri     | 5 dk |
-| `bondData`   | Tahvil/Bono        | 5 dk |
-| `viopData`   | VIOP Enstrümanları | 5 dk |
-| `fundData`   | Fon Verileri       | 5 dk |
+| Cache Adı    | Veri Tipi          | Cache Süresi | Scheduler | Buffer |
+| ------------ | ------------------ | ------------ | --------- | ------ |
+| `forexRates` | Döviz Kurları      | **8 dk**     | 5 dk      | +60%   |
+| `stockData`  | Hisse Verileri     | **15 dk**    | 10 dk     | +50%   |
+| `bondData`   | Tahvil/Bono        | **90 dk**    | 60 dk     | +50%   |
+| `viopData`   | VIOP Enstrümanları | **15 dk**    | 10 dk     | +50%   |
+| `fundData`   | Fon Verileri       | **90 dk**    | 60 dk     | +50%   |
 
 ### Scheduler - Otomatik Veri Güncelleme
 **Dosya**: `backend/finance-portal/finance-portal-api/src/main/java/com/toyotaborsa/finance/scheduler/FinanceDataScheduler.java`
@@ -46,7 +46,8 @@ Cache Özellikleri:
 ```java
 @Cacheable(value = "forexRates", cacheManager = "cacheManager")
 public Map<String, ForexRate> getForexRates() {
-    // Sadece cache'te yoksa çalışır
+    //ilk çağrıda apiye gider veriyi alır cacheye koyar
+    // Sadece cache'te yoksa çalışır ve cacheden getirir
     // API'ye gereksiz istek atmaz
 }
 ```
@@ -56,7 +57,7 @@ public Map<String, ForexRate> getForexRates() {
 @Scheduled(cron = "0 */5 * * * *")
 @CacheEvict(value = "forexRates", allEntries = true)
 public void refreshForexRates() {
-    // Cache'i temizle ve yeni veri çek
+    //Scheduler tetikliyor Cache'i temizle ve hemen yeni veri çek
 }
 ```
 
@@ -70,9 +71,9 @@ public void refreshForexRates() {
 ```typescript
 const queryClient = new QueryClient({
     defaultOptions: {
-        queries: {
-            staleTime: 5 * 60 * 1000,        // 5 dakika - Backend ile sync
-            gcTime: 10 * 60 * 1000,          // 10 dakika - Garbage Collection
+        queries: {//stale:
+            staleTime: 3 * 60 * 1000,        // 3 dakika - Backend cache'den kısa(backendCachSuresi>frontCachSuresi)
+            gcTime: 10 * 60 * 1000,          //user geri donrs - Garbage Collection
             refetchOnWindowFocus: false,     // Pencere focus'unda yenileme YOK
             retry: 1,                        // Hata durumunda 1 kez tekrar dene
         },
@@ -83,15 +84,15 @@ const queryClient = new QueryClient({
 ### Custom Hooks
 **Dosya**: `frontend/finance-portal-web/src/hooks/useFinanceData.ts`
 
-| Hook              | Stale Time | Refetch Interval | Açıklama                        |
-| ----------------- | ---------- | ---------------- | ------------------------------- |
-| `useForexRates()` | 5 dk       | 3 dk             | Background'da otomatik yenileme |
-| `useStocks()`     | 5 dk       | 5 dk             | Hisse verileri                  |
-| `useBonds()`      | 30 dk      | 30 dk            | Tahviller az değişir            |
-| `useViopData()`   | 5 dk       | 5 dk             | VIOP enstrümanları              |
-| `useFunds()`      | 30 dk      | 30 dk            | Fonlar günlük güncelleme        |
-| `useNews()`       | 2 dk       | 5 dk             | Haberler sık değişir            |
-| `useSearchNews()` | 1 dk       | -                | Arama sonuçları geçici          |
+| Hook              | Stale Time | Refetch Interval | Backend Cache | Açıklama                        |
+| ----------------- | ---------- | ---------------- | ------------- | ------------------------------- |
+| `useForexRates()` | 3 dk       | 2 dk             | 8 dk          | Background'da otomatik yenileme |
+| `useStocks()`     | 7 dk       | 5 dk             | 15 dk         | Hisse verileri                  |
+| `useBonds()`      | 50 dk      | 45 dk            | 90 dk         | Tahviller az değişir            |
+| `useViopData()`   | 7 dk       | 5 dk             | 15 dk         | VIOP enstrümanları              |
+| `useFunds()`      | 50 dk      | 45 dk            | 90 dk         | Fonlar günlük güncelleme        |
+| `useNews()`       | 2 dk       | 5 dk             | -             | Haberler sık değişir            |
+| `useSearchNews()` | 1 dk       | -                | -             | Arama sonuçları geçici          |
 
 ### Hook Kullanım Örneği
 ```typescript
@@ -101,7 +102,7 @@ useEffect(() => {
     fetchData().then(setData)
 }, [])
 
-// YENİ YOL ✅ - Cache'li, otomatik yenilenir
+// YENİ YOL ✅ - Cache'li, otomatik yenilenir her şeyi sistem halleder
 const { data, isLoading, error } = useForexRates()
 ```
 
@@ -252,7 +253,7 @@ Geliştirme sırasında cache durumunu görmek için:
 
 ## 🚨 Önemli Notlar
 
-1. **Backend cache 5 dk, Frontend cache 5 dk**
+1. **Backend cache 5 dk, Frontend cache 3 dk**
    - İki katmanlı koruma
    - Toplam 5 dakika boyunca API'ye gidilmez
 
@@ -326,6 +327,6 @@ React Query DevTools üzerinden:
 
 ---
 
-**Son Güncelleme**: 17 Ocak 2026
+**Son Güncelleme**: 2026
 **Versiyon**: 1.0
 **Durum**: ✅ Aktif ve Çalışıyor

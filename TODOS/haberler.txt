@@ -1,0 +1,3 @@
+yeni haber geldiğinde yanar söner var ama kararsız
+geri gelindiğinde falanda
+ve okunan haberlere efekt eklenecek

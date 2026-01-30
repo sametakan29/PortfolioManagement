@@ -1,13 +1,13 @@
-# OpenSearch Configuration
+# OpenSearch Configuration mecburen özel şeyleri burada yazdık ama her şeyi de buraya taşıyamıyoruz
 cluster.name: finance-cluster
 node.name: opensearch-node1
 network.host: 0.0.0.0
 
-# Security plugin disabled
+#dev ortamında karmaşa olmasın vede keycloak iş görüyor şuan
 plugins.security.disabled: true
 
-# Discovery
+#tek başımayım sus demeyi sağlar
 discovery.type: single-node
 
-# Memory
+#gc delirmesin throttle yememek için
 bootstrap.memory_lock: true

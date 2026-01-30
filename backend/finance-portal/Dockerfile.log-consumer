@@ -1,8 +1,16 @@
+#Log consumer’ı ayrı servis olarak paketledim çünkü ölçekleme, hata izolasyonu ve bağımsız deploy açısından API’den farklı bir çalışma modeli var; bu yüzden ayrı jar ve ayrı Docker imajı üretiyorum.
+
 # Build stage for Log Consumer
+
+#AS build dememizin sebebi: Sonraki stage’de --from=build diyebilmek.
 FROM maven:3.9-eclipse-temurin-21 AS build
+#Container içinde çalışma klasörü /workspace olsun sonraki tüm işlemler bu dizinde
 WORKDIR /workspace
+#Sadece pom dosyasını önce kopyala.Bu sıra çok önemli
 COPY log-consumer-service/pom.xml ./pom.xml
+#Kaynak kodu kopyala.Artık maven derleme yapabilir.Artık pom ve Source code var
 COPY log-consumer-service/src ./src
+#Projeyi temizle, derle, jar üret; testleri çalıştırma.
 RUN mvn clean package -DskipTests
 
 # Runtime stage

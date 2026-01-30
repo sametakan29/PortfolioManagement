@@ -115,7 +115,7 @@ public class StockDataService {
                 Double price = item.path("price").asDouble();
                 Double rate = item.path("rate").asDouble();
 
-                StockData stockData = new StockData(name, getStockName(name));
+                StockData stockData = new StockData(name, name);
                 stockData.setPrice(price);
                 stockData.setChangePercent(rate);
 
@@ -135,25 +135,5 @@ public class StockDataService {
             log.error("CollectAPI'den veri alınırken hata: {}", e.getMessage(), e);
             return new HashMap<>();
         }
-    }
-
-    private String getStockName(String symbol) {
-        Map<String, String> stockNames = new HashMap<>();
-        stockNames.put("THYAO", "Türk Hava Yolları");
-        stockNames.put("GARAN", "Garanti BBVA");
-        stockNames.put("AKBNK", "Akbank");
-        stockNames.put("EREGL", "Ereğli Demir Çelik");
-        stockNames.put("SISE", "Şişecam");
-        stockNames.put("KCHOL", "Koç Holding");
-        stockNames.put("ASELS", "Aselsan");
-        stockNames.put("BIMAS", "BİM Mağazaları");
-        stockNames.put("TOASO", "Tofaş Oto");
-        stockNames.put("TCELL", "Turkcell");
-        stockNames.put("TUPRS", "Tüpraş");
-        stockNames.put("SAHOL", "Sabancı Holding");
-        stockNames.put("ISCTR", "İş Bankası (C)");
-        stockNames.put("PETKM", "Petkim");
-        stockNames.put("VAKBN", "Vakıfbank");
-        return stockNames.getOrDefault(symbol, symbol);
     }
 }

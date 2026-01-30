@@ -1,31 +1,40 @@
+# ========== PROD PROFILE AYARLARI ==========
+# Üretim ortamı için konfigürasyon
 server:
   port: 8081
 
 spring:
   application:
     name: finance-portal-api
+  # Veritabanı bağlantısı (ortam değişkenlerinden okunur)
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://postgres:5432/finance_portal}
     username: ${DATASOURCE_USERNAME:finance_user}
     password: ${DATASOURCE_PASSWORD:finance_pass}
     driver-class-name: org.postgresql.Driver
+  # JPA/Hibernate ayarları
   jpa:
     hibernate:
+      # Production'da sadece doğrulama - otomatik şema güncellemesi YOK
       ddl-auto: validate
     properties:
       hibernate:
+        # SQL sorgularını yazdırma
         format_sql: false
         show_sql: false
     open-in-view: false
+  # Flyway: Veritabanı migration
   flyway:
     enabled: true
     locations: classpath:db/migration
+  # Kafka broker ayarları
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     client-id: ${HOSTNAME:finance-portal-api}
     consumer:
       group-id: finance-portal-api
       auto-offset-reset: earliest
+  # OAuth2 Resource Server - Keycloak JWT ayarları
   security:
     oauth2:
       resourceserver:
@@ -39,23 +48,32 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+# ========== LOGGING AYARLARI ==========
+# Production'da minimal logging seviyesi
 logging:
   level:
+    # Production'da INFO seviyesi - detaylı loglara gerek yok
     root: INFO
     org.springframework: INFO
     org.hibernate.SQL: WARN
   config: classpath:log4j2-spring.xml
 
+# ========== OPENTELEMETRY AYARLARI ==========
+# Dağıtık izleme (tracing) konfigürasyonu
 opentelemetry:
   traces:
     exporter: otlp
   otlp:
     endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-collector:4318}
 
+# ========== JBPM AYARLARI ==========
+# İş akışı yönetimi (Business Process Management)
 jbpm:
   kie-server-id: finance-portal
   persistence-unit-name: org.jbpm.persistence.jpa
 
+# ========== KAFKA TOPIC AYARLARI ==========
+# Merkezi log sistemi için Kafka konu yapılandırması
 kafka:
   topics:
     app-logs: ${KAFKA_LOG_TOPIC:app-logs}

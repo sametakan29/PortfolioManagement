@@ -9,11 +9,12 @@
  * - Anahtar kelime araması
  * - Sayfalama (pagination)
  * - Haber detay sayfasına yönlendirme
+ * - Yeni haberler için flash efekti
  * 
  * API: newsApi.getAllNews(), newsApi.getNewsByCategory(), newsApi.searchNews()
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     Box,
     Container,
@@ -34,11 +35,35 @@ import {
     Stack,
     CircularProgress,
     Alert,
+    keyframes,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import FiberNewIcon from '@mui/icons-material/FiberNew'
 import { useNavigate } from 'react-router-dom'
 import { useNews, useNewsByCategory, useSearchNews, useNewsCategories } from '../hooks/useFinanceData'
 import type { NewsDto } from '../services/api'
+
+// Yeni haber flash animasyonu
+const flashAnimation = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+`
+
+const glowPulse = keyframes`
+  0%, 100% {
+    border-color: rgba(76, 175, 80, 0.3);
+  }
+  50% {
+    border-color: rgba(76, 175, 80, 0.8);
+  }
+`
 
 const categoryLabels: { [key: string]: string } = {
     GENERAL_ECONOMY: 'Genel Ekonomi',
@@ -71,6 +96,11 @@ const News: React.FC = () => {
     const [searchActive, setSearchActive] = useState(false)
     const [selectedCategory, setSelectedCategory] = useState<string>('ALL')
 
+    // Yeni haberleri track etmek için
+    const [seenNewsIds, setSeenNewsIds] = useState<Set<number>>(new Set())
+    const [newNewsIds, setNewNewsIds] = useState<Set<number>>(new Set())
+    const isFirstLoad = useRef(true)
+
     // React Query hooks - Cache'li veri çekme
     const { data: categories = [] } = useNewsCategories()
 
@@ -101,6 +131,44 @@ const News: React.FC = () => {
         : selectedCategory !== 'ALL'
             ? categoryError
             : allNewsError
+
+    // Yeni haberleri tespit et ve flash efekti için işaretle
+    useEffect(() => {
+        if (newsData && newsData.content && page === 0) {
+            const currentIds = new Set(newsData.content.map((n: NewsDto) => n.id))
+
+            if (isFirstLoad.current) {
+                // İlk yüklemede tüm haberleri "görüldü" olarak işaretle
+                setSeenNewsIds(currentIds)
+                isFirstLoad.current = false
+            } else {
+                // Sonraki yüklemelerde yeni haberleri tespit et
+                const newIds = new Set<number>()
+                currentIds.forEach(id => {
+                    if (!seenNewsIds.has(id)) {
+                        newIds.add(id)
+                    }
+                })
+
+                if (newIds.size > 0) {
+                    setNewNewsIds(newIds)
+                    // 5 saniye sonra flash efektini kaldır
+                    setTimeout(() => {
+                        setNewNewsIds(new Set())
+                        setSeenNewsIds(prev => new Set([...prev, ...newIds]))
+                    }, 5000)
+                }
+            }
+        }
+    }, [newsData, page])
+
+    // Haberin yeni olup olmadığını kontrol et (son 10 dakika)
+    const isRecentNews = (publishedDate: string) => {
+        const published = new Date(publishedDate)
+        const now = new Date()
+        const diffMinutes = (now.getTime() - published.getTime()) / (1000 * 60)
+        return diffMinutes <= 10
+    }
 
     const handleSearch = () => {
         setPage(0)
@@ -206,6 +274,13 @@ const News: React.FC = () => {
                                         flexDirection: 'column',
                                         cursor: 'pointer',
                                         transition: 'transform 0.2s, box-shadow 0.2s',
+                                        position: 'relative',
+                                        // Yeni haber flash efekti
+                                        ...(newNewsIds.has(news.id) && {
+                                            animation: `${flashAnimation} 1.5s ease-in-out infinite`,
+                                            border: '2px solid',
+                                            borderColor: 'success.main',
+                                        }),
                                         '&:hover': {
                                             transform: 'translateY(-4px)',
                                             boxShadow: 6,
@@ -223,12 +298,25 @@ const News: React.FC = () => {
                                         />
                                     )}
                                     <CardContent sx={{ flexGrow: 1 }}>
-                                        <Box sx={{ mb: 2 }}>
+                                        <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                             <Chip
                                                 label={categoryLabels[news.category] || news.category}
                                                 color={categoryColors[news.category] || 'default'}
                                                 size="small"
                                             />
+                                            {/* Yeni haber badge'i */}
+                                            {(newNewsIds.has(news.id) || isRecentNews(news.publishedDate)) && (
+                                                <Chip
+                                                    icon={<FiberNewIcon />}
+                                                    label="YENİ"
+                                                    color="success"
+                                                    size="small"
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        animation: newNewsIds.has(news.id) ? `${glowPulse} 1s ease-in-out infinite` : 'none',
+                                                    }}
+                                                />
+                                            )}
                                         </Box>
                                         <Typography
                                             gutterBottom

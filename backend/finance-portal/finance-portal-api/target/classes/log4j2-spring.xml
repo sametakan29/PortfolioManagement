@@ -1,74 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Log4j2 Konfigürasyonu: yapılandırılmış Günlüğe Kaydetme -->
+<!-- Console ve Kafka aracılığıyla uygulama loglarını yönetir -->
 <Configuration status="WARN" packages="org.apache.logging.log4j.core,org.apache.kafka.log4jappender">
+    <!-- global Özellikler: Tüm uygulamada kullanılacak değişkenler -->
     <Properties>
+        <!-- Log mesajının formatı: Tarih, Log Seviyesi, Thread, Sınıf, Mesaj -->
         <Property name="LOG_PATTERN">%d{ISO8601} %-5p [%t] %c{1.} - %m%n</Property>
+        <!-- Uygulama adı - yapılandırılmış loglara eklenir -->
         <Property name="APP_NAME">finance-portal-api</Property>
+        <!-- Kafka konu adı - ortam değişkeninden okunur, varsayılan: app-logs -->
         <Property name="KAFKA_TOPIC">${env:KAFKA_LOG_TOPIC:-app-logs}</Property>
+        <!-- Kafka broker sunucu adresleri - ortam değişkeninden okunur, varsayılan: kafka:9092 -->
         <Property name="KAFKA_SERVERS">${env:KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}</Property>
     </Properties>
 
     <Appenders>
-        <!-- Console Appender with colored output for local development -->
+        <!-- ========== CONSOLE APPENDER ========== -->
+        <!-- Yerel geliştirme için standart çıkışa renklendirmeleriyle logları yazdırır -->
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
 
-        <!-- Kafka Appender - sends JSON formatted logs to Kafka topic -->
-        <Kafka name="KafkaAppender" topic="${KAFKA_TOPIC}" ignoreExceptions="false">
-            <Property name="bootstrap.servers">${KAFKA_SERVERS}</Property>
-            <Property name="acks">1</Property>
-            <Property name="compression.type">gzip</Property>
-            <Property name="max.block.ms">2000</Property>
-            
-            <!-- JSON Layout for structured logging -->
-            <JsonLayout complete="false" compact="true" eventEol="true" properties="true">
-                <KeyValuePair key="application" value="${APP_NAME}"/>
-                <KeyValuePair key="environment" value="${env:SPRING_PROFILES_ACTIVE:-dev}"/>
-                <KeyValuePair key="hostname" value="${env:HOSTNAME:-localhost}"/>
-            </JsonLayout>
+        <!-- ========== KAFKA APPENDER ========== -->
+        <!-- JSON formatında yapılandırılmış logları Kafka konu başlığına gönderir -->
+        <!-- Bu appender, logları merkezi bir sisteme yönlendirmek için kullanılır -->
+        <Kafka name="KafkaAppender" topic="${KAFKA_TOPIC}">
+        <PatternLayout pattern="${LOG_PATTERN}"/>
+        <Property name="bootstrap.servers">${KAFKA_SERVERS}</Property>
+        <Property name="acks">1</Property>
+        <Property name="compression.type">gzip</Property>
+        <Property name="max.block.ms">2000</Property>
+    
+        <JsonLayout complete="false" compact="true" eventEol="true" properties="true">
+        <KeyValuePair key="application" value="${APP_NAME}"/>
+        <KeyValuePair key="environment" value="${env:SPRING_PROFILES_ACTIVE:-dev}"/>
+        <KeyValuePair key="hostname" value="${env:HOSTNAME:-localhost}"/>
+        </JsonLayout>
         </Kafka>
 
-        <!-- Async Appender wrapper for Kafka to prevent blocking on log operations -->
-        <Async name="AsyncKafka" blocking="false">
+        <!-- ========== ASYNC APPENDER ========== -->
+        <!-- Kafka appender'ı asenkron yaparak ana thread'in engellenmesini önler -->
+        <!-- İyileştirme: Log yazma işlemi arka planda gerçekleşir -->
+        <Async name="AsyncKafka" blocking="false" bufferSize="512">
             <AppenderRef ref="KafkaAppender"/>
         </Async>
     </Appenders>
 
     <Loggers>
-        <!-- Application loggers -->
+        <!-- ========== UYGULAMA LOGGERS ========== -->
+        <!-- Finance Portal uygulamasının kendi kodundan gelen loglar -->
+        <!-- Level: DEBUG - Geliştirme sırasında detaylı bilgi için -->
+        <!-- additivity="false": Logların üst logger'a iletilmesini önle (çift kayıt yaşanmasını engelle) -->
         <Logger name="com.toyotaborsa" level="debug" additivity="false">
+            <!-- Console'a ve Kafka'ya gönder -->
             <AppenderRef ref="Console"/>
             <AppenderRef ref="AsyncKafka"/>
         </Logger>
 
-        <!-- Spring Framework loggers -->
+        <!-- ========== SPRING FRAMEWORK LOGGERS ========== -->
+        <!-- Spring Framework'ün kendi logları (çok detaylı olabilir) -->
+        <!-- Level: INFO - Sadece önemli bilgileri göster -->
         <Logger name="org.springframework" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="AsyncKafka"/>
         </Logger>
 
-        <!-- Spring Security detailed logging (useful for debugging auth issues) -->
+        <!-- ========== SPRING SECURITY LOGGERS ========== -->
+        <!-- Kimlik doğrulama ve yetkilendirme işlemlerinin logları -->
+        <!-- Hata ayıklama sırasında authentication sorunlarını izlemek için yararlı -->
         <Logger name="org.springframework.security" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="AsyncKafka"/>
         </Logger>
 
-        <!-- Hibernate SQL logging -->
+        <!-- ========== HIBERNATE LOGGERS ========== -->
+        <!-- Hibernate tarafından oluşturulan SQL sorguları -->
+        <!-- Level: DEBUG - Her SQL sorgusunun konsolda görülmesi için -->
+        <!-- NOT: Üretim ortamında performans nedeniyle INFO olmalı -->
         <Logger name="org.hibernate.SQL" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <!-- Hibernate bind parameters -->
+        <!-- SQL bind parametreleri - sorguya geçilen değerler -->
+        <!-- Level: TRACE - En detaylı seviye, sorguların hangi parametrelerle çalıştığını görmek için -->
         <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <!-- Kafka client logging (reduce noise) -->
+        <!-- ========== KAFKA CLIENT LOGGERS ========== -->
+        <!-- Apache Kafka istemcisinden gelen loglar -->
+        <!-- Level: WARN - Çok fazla ayrıntı olmadan sadece uyarıları göster (gürültüyü azalt) -->
         <Logger name="org.apache.kafka" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <!-- Root logger -->
+        <!-- ========== ROOT LOGGER ========== -->
+        <!-- Tüm loglar için varsayılan ayarlar - hiçbir kategori tarafından yakalanmayan loglar buraya düşer -->
+        <!-- Level: INFO - Standart üretim seviyesi -->
         <Root level="info">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="AsyncKafka"/>
