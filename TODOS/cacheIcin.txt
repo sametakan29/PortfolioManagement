@@ -1,0 +1,37 @@
+1->
+Uygulama restart olunca ne olacak?
+Caffeine RAM’de olduğu için restart’ta cache sıfırlanır. İlk istekte provider’a gidiş olacak. Bu normal; ama ilk kullanıcı gecikme yaşayabilir.
+Çözüm (istersen): uygulama açılışında “warm-up” veya scheduler’ın hemen çalışması.
+
+Scheduler başarısız olursa endpoint davranışı
+Buffer var, iyi. Ama uzun süre provider down olursa TTL de dolar.
+Bu noktada en azından:
+
+kontrollü 503
+
+log/metric
+olması iyi olur. (Boş/0 veri dönmekten iyidir.)
+
+Cache key ve boyut limiti
+“stockData” gibi cache’ler tek obje mi yoksa sembol bazlı mı bilmiyorum.
+
+Tek obje ise sorun az
+
+Sembol bazlı çok entry ise maximumSize şart
+Yoksa RAM şişebilir.
+
+2->
+Önerdiğim en güvenli desen:
+
+Scheduler: evict + warm (yeniden doldur) yap
+
+Endpoint: @Cacheable ile her zaman cache’ten dönebilir halde olsun
+
+Provider fail olursa: kontrollü hata/
+Sadece “provider down” senaryosunda:
+
+evict → cache boş kalma riski var
+3->
+test etmedim
+1 Spring Actuator ile (en profesyonel yol)
+http://localhost:8080/actuator/caches

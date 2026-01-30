@@ -4,7 +4,7 @@
 services:
 #aşağıda çalşck uyg/servs(her biri container) bilgileri
   postgres:
-    #paketlenmiş patgres dosyası(statik)
+    #paketlenmiş pstgres dosyası(statik)
     image: postgres:16
     #container çökerse tekrar ayağa kaldır
     restart: unless-stopped
@@ -77,12 +77,6 @@ services:
     image: opensearchproject/opensearch:2.17.0
     restart: unless-stopped
     environment:
-      #tek başımayım sus demeyi sağlar
-      discovery.type: single-node
-      #dev ortamında karmaşa olmasın vede keycloak iş görüyor şuan
-      DISABLE_SECURITY_PLUGIN: "true"
-      #gc delirmesin throttle yememek için
-      bootstrap.memory_lock: "true"
       #minheap ve maxheap 512mb yap
       OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
     #containere ne kadar ram istiyorsan ramin orasını kilitle der yoksa latency

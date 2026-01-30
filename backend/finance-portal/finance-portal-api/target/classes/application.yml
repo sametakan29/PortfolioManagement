@@ -1,15 +1,20 @@
+# ========== SPRING FRAMEWORK AYARLARI ==========
 spring:
+  # Aktif profil: dev, prod, staging vb.
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   
+  # Uygulama Adı
   application:
     name: finance-portal-api
   
+  # Flyway: Veritabanı migration aracı
   flyway:
     baseline-on-migrate: true
     enabled: true
 
-# Default properties (overridden by profile-specific files)
+# ========== SUNUCU AYARLARI ==========
+# Profil-spesifik dosyalarda geçersiz kılınır
 server:
   port: 8081
   servlet:
@@ -18,13 +23,13 @@ server:
 logging:
   config: classpath:log4j2-spring.xml
 
-# RSS Feed Configuration for News
+# ========== HABER RSS FEED AYARLARI ==========
+# Farklı kaynakları düzenli aralıklarla tarama
 news:
   rss:
     enabled: true
-    fetch-interval-minutes: 30 # Her 30 dakikada bir çek
-    sources:
-      # Türkiye Finans Haber Kaynakları
+    fetch-interval-minutes: 30
+    sources:  # ← Bu satır EKLENMELİ
       - name: "Bloomberg HT"
         url: "https://www.bloomberght.com/rss"
         category: GENERAL_ECONOMY
@@ -55,15 +60,14 @@ news:
         category: STOCK_MARKET
         enabled: true
 
-# Finance API Configuration
-# Her kategori için sadece API Key ve URL verin
-# Herhangi bir API sağlayıcısı kullanabilirsiniz
+# ========== FINANS API AYARLARI ==========
+# Her kategori için API Key ve URL yapılandırması
 finance:
   api:
     # Döviz Kuru API
     forex:
       enabled: ${FOREX_ENABLED:true}
-      api-key: ${FOREX_API_KEY:75fc64dc8d2bb1b09f1c0da0}
+      api-key: ${FOREX_API_KEY:75fc64dc8d2bb1b09f1c0da0/latest/TRY}
       api-url: ${FOREX_API_URL:https://v6.exchangerate-api.com/v6}
       # ExchangeRate-API kullanılıyor
       # Örnek: https://v6.exchangerate-api.com/v6
@@ -98,22 +102,23 @@ finance:
       # Örnek: https://www.tefas.gov.tr/api
       # Örnek: https://www.spk.gov.tr/api
 
-# Cache Configuration
+# ========== CACHE AYARLARI ==========
+# Her veri kategorisi için TTL (dakika cinsinden)
 cache:
-  # Cache süreleri (dakika cinsinden)
   forex-ttl: 5      # Döviz kurları 5 dakika
   stock-ttl: 10     # Hisse verileri 10 dakika
   bond-ttl: 60      # Tahvil verileri 60 dakika
   viop-ttl: 10      # VIOP verileri 10 dakika
   fund-ttl: 60      # Fon verileri 60 dakika
 
-# Scheduler Configuration
+# ========== SCHEDULER AYARLARI ==========
+# Periyodik veri yenileme görevleri
 scheduler:
   enabled: ${SCHEDULER_ENABLED:true}
-  # Cron ifadeleri için:
+  # Cron İfadeleri Örnekleri:
   # - Her 5 dakika: 0 */5 * * * *
   # - Her 10 dakika: 0 */10 * * * *
-  # - Her saat: 0 0 * * * *
+  # - Her saat başında: 0 0 * * * *
   forex-cron: ${FOREX_REFRESH_CRON:0 */5 * * * *}
   stock-cron: ${STOCK_REFRESH_CRON:0 */10 * * * *}
   bond-cron: ${BOND_REFRESH_CRON:0 0 * * * *}

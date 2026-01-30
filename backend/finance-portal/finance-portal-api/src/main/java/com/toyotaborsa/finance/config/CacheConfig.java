@@ -1,12 +1,15 @@
 package com.toyotaborsa.finance.config;
 
+// Caffeine: Yüksek performanslı in-memory cache kütüphanesi
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,35 +22,37 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     /**
-     * Cache Manager bean
-     * Her veri tipi için farklı sürelerde cache tutar
+     * Cache Manager Bean - Tüm cache'leri yönetir
+     * Her veri tipi için ayrı cache oluşturur ve yapılandırır
      */
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "forexRates", // Döviz kurları
-                "stockData", // Hisse verileri
-                "bondData", // Tahvil verileri
-                "viopData", // VIOP verileri
-                "fundData" // Fon verileri
-        );
-
-        cacheManager.setCaffeine(caffeineCacheBuilder());
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(Arrays.asList(
+                buildCache("forexRates", 8), // Döviz: 8 dk
+                buildCache("stockData", 15), // Hisse: 15 dk
+                buildCache("bondData", 90), // Tahvil: 90 dk
+                buildCache("viopData", 15), // VIOP: 15 dk
+                buildCache("fundData", 90) // Fon: 90 dk
+        ));
         return cacheManager;
     }
 
     /**
-     * Caffeine cache builder
-     * Cache özellikleri:
-     * - Maksimum 1000 kayıt
-     * - 5 dakika sonra otomatik temizlenir
-     * - Son erişimden 3 dakika sonra otomatik temizlenir
+     * Caffeine Cache Builder - Her cache için özel konfigürasyon
+     * 
+     * @param cacheName  Cache adı (Spring @Cacheable'da kullanılır)
+     * @param ttlMinutes Verinin geçerliliği süresi (dakika)
+     * @return Yapılandırılmış CaffeineCache nesnesi
      */
-    private Caffeine<Object, Object> caffeineCacheBuilder() {
-        return Caffeine.newBuilder()
-                .maximumSize(1000) // Max 1000 kayıt
-                .expireAfterWrite(5, TimeUnit.MINUTES) // 5 dk sonra sil
-                .expireAfterAccess(3, TimeUnit.MINUTES) // 3 dk erişilmezse sil
-                .recordStats(); // İstatistik tut (monitoring için)
+    private CaffeineCache buildCache(String cacheName, int ttlMinutes) {
+        return new CaffeineCache(cacheName, Caffeine.newBuilder()
+                // Maksimum 1000 kayıt sakla (overflow'u önle)
+                .maximumSize(1000)
+                // TTL: Yazıldıktan sonra otomatik silinme
+                .expireAfterWrite(ttlMinutes, TimeUnit.MINUTES)
+                // İstatistik topla (hit/miss oranları - monitoring için)
+                .recordStats()
+                .build());
     }
 }

@@ -8,7 +8,8 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     consumer:
       group-id: log-consumer-group
-      auto-offset-reset: earliest
+      auto-offset-reset: earliest #ilk kez çalışıyorsa topicin en başından okmy başlar
+      #deserializer:kafkadan gelen key/valuenin stringe çevrilmesi
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
@@ -16,11 +17,11 @@ opensearch:
   host: ${OPENSEARCH_HOST:opensearch}
   port: ${OPENSEARCH_PORT:9200}
 
-kafka:
-  topics:
-    app-logs: ${KAFKA_LOG_TOPIC:app-logs}
-
 logging:
   level:
     root: INFO
     com.toyotaborsa: DEBUG
+
+kafka:
+  topics:
+    app-logs: ${KAFKA_LOG_TOPIC:app-logs}

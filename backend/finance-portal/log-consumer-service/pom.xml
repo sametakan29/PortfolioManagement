@@ -3,8 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <parent>
+    
+    <parent><!--parent:uyumlu sürüm seti sağlar:Bu sayede birçok Spring bağımlılığında sürüm yazmadan kullanabiliriz.-->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.5</version>
@@ -13,12 +13,12 @@
 
     <groupId>com.toyotaborsa</groupId>
     <artifactId>log-consumer-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version><!--geliştirme sürümü:SnapSht:release değil-->
     <name>Finance Portal :: Log Consumer</name>
-    <packaging>jar</packaging>
+    <packaging>jar</packaging><!--çıktı çalıştırılabilir paket olan jar-->
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>21</java.version><!--java21 hedefli derle/çalıştır-->
         <opentelemetry.version>1.38.0</opentelemetry.version>
     </properties>
 
@@ -26,7 +26,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-bom</artifactId>
+                <artifactId>opentelemetry-bom</artifactId><!--OTel parçalarının birbiriyle uyumlu sürümlerini otomatik sabitlersin.-->
                 <version>${opentelemetry.version}</version>
                 <type>pom</type>
                 <scope>import</scope>

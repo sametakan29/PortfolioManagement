@@ -4,6 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Parent POM: Spring Boot starter for managing dependencies and plugins -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -17,6 +18,7 @@
     <name>Finance Portal :: API</name>
     <packaging>jar</packaging>
 
+    <!-- Project Properties -->
     <properties>
         <java.version>21</java.version>
         <lombok.version>1.18.36</lombok.version>
@@ -25,6 +27,7 @@
     </properties>
 
     <dependencyManagement>
+        <!-- Centralized dependency version management for OpenTelemetry -->
         <dependencies>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
@@ -36,7 +39,10 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- Project Dependencies -->
     <dependencies>
+        <!-- =============== Spring Boot Core Dependencies =============== -->
+        <!-- Spring Web: REST API and Spring MVC support -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -47,112 +53,143 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        
+        <!-- Spring Data JPA: ORM and database access -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        
+        <!-- Spring Security: Authentication and authorization -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        
+        <!-- OAuth2 Resource Server: For JWT/OAuth2 token validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
+        
+        <!-- Validation: Bean validation support -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        
+        <!-- Actuator: Health checks and metrics endpoint -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <!-- =============== Messaging & Kafka =============== -->
+        <!-- Spring Kafka: Event streaming and messaging -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
+
+        <!-- =============== Logging Dependencies =============== -->
+        <!-- Log4j2: Async logging framework -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
+        
+        <!-- Log4j JSON Layout: Structured JSON logging -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-layout-template-json</artifactId>
         </dependency>
+
+        <!-- =============== Data & Database Dependencies =============== -->
+        <!-- Jackson: JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        
+        <!-- PostgreSQL: Database driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        
+        <!-- Flyway: Database migration tool -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <!-- RSS Feed Parser for news fetching -->
+
+        <!-- =============== RSS Feed & Content Dependencies =============== -->
+        <!-- Rome: RSS/Atom feed parser for news fetching -->
         <dependency>
             <groupId>com.rometools</groupId>
             <artifactId>rome</artifactId>
             <version>2.1.0</version>
         </dependency>
+        
+        <!-- Rome Modules: Extended feed modules support -->
         <dependency>
             <groupId>com.rometools</groupId>
             <artifactId>rome-modules</artifactId>
             <version>2.1.0</version>
         </dependency>
-        <!-- Cache dependencies -->
+
+        <!-- =============== Caching Dependencies =============== -->
+        <!-- Spring Cache: Caching abstraction layer -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
+        
+        <!-- Caffeine: High-performance caching library -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
-        <!-- jBPM workflow engine - commented out until jBoss repository is configured
-        <dependency>
-            <groupId>org.jbpm</groupId>
-            <artifactId>jbpm-flow</artifactId>
-            <version>${jbpm.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jbpm</groupId>
-            <artifactId>jbpm-flow-builder</artifactId>
-            <version>${jbpm.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jbpm</groupId>
-            <artifactId>jbpm-bpmn2</artifactId>
-            <version>${jbpm.version}</version>
-        </dependency>
-        -->
+
+        <!-- =============== Observability & Tracing Dependencies =============== -->
+        <!-- OpenTelemetry API: Distributed tracing and metrics -->
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
         </dependency>
+        
+        <!-- OpenTelemetry SDK: OpenTelemetry implementation -->
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
         </dependency>
+        
+        <!-- OpenTelemetry OTLP Exporter: Export traces to OTEL Collector -->
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
+
+        <!-- =============== Code Generation & Utilities =============== -->
+        <!-- Lombok: Reduce boilerplate code with annotations -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Spring Boot DevTools for hot reload -->
+
+        <!-- =============== Development Tools =============== -->
+        <!-- Spring Boot DevTools: Hot reload during development -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- =============== Testing Dependencies =============== -->
+        <!-- Spring Boot Test: Unit and integration testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -161,7 +198,9 @@
     </dependencies>
 
     <build>
+        <!-- Build Plugins Configuration -->
         <plugins>
+            <!-- Maven Compiler Plugin: Java compilation settings -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -169,6 +208,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <!-- Annotation processors for Lombok -->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -178,10 +218,13 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            
+            <!-- Spring Boot Maven Plugin: Package as executable JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- Exclude Lombok from the final package -->
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

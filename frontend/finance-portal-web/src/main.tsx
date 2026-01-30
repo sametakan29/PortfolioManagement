@@ -12,17 +12,22 @@ import './index.css'
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000, // 5 dakika - Backend cache ile uyumlu
-            gcTime: 10 * 60 * 1000, // 10 dakika - eski adı cacheTime
-            refetchOnWindowFocus: false, // Pencere focus'unda otomatik refetch yapma
-            refetchOnMount: false, // Component mount'unda refetch yapma (cache kullan)
+            staleTime: 3 * 60 * 1000, // 3 dakika - Backend cache'den kısa(yanılma payını azaltmak için)
+            gcTime: 10 * 60 * 1000, //kullanılmayan verinin ram tut süres(kullanıcı cıktıysa 10 dk daha dursun geri donerse hızlı)
+            refetchOnWindowFocus: false, //kull sekm geri donerse oto yenileme yapma
+            refetchOnMount: false, //montelenmis sayfalari surekli cikarip takma cacheden gelsinler(sayfaya ileri-geri yaprsa)
             refetchOnReconnect: false, // İnternet bağlantısı tekrar geldiğinde refetch yapma
             retry: 1, // Hata durumunda 1 kez tekrar dene
         },
     },
 })
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
+//ana iskeleti olusturalim
+ReactDOM.createRoot(document.getElementById('root')!).render(//reac roota yerlessin
+    //hataları erken yakalamak icin gelistirme esnasında kullanılır
+    //client=>tanstack cache tum uygulamaya veriliyor
+    //browserouter=>react router icin(/login falan burad cozulur)
+    //themeprov:ui icin,cssbasel:tarayıcı farkl sıfırlar temel css
+    //devtools:hangi query cach,ne zaman refrs,hata var mi debug araci
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>
             <BrowserRouter>

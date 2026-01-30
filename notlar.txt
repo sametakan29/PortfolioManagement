@@ -8,9 +8,29 @@
 ->infra:kod olmayan ama uyglmnın ayakta kalmasını sağlayan her şey
 ->financrealmjson:keycloak fabrka ayarları realm:bağsız kimlk evrni
 ->pom:proje beyni-sürüm listesi-derleme talimatı
-
+->tomcat:Spring Bootun internetle konuşabilmesi için gerekli olan HTTP sunucusudur; istekleri alır ve Spring’e iletir.
 ->caffeine:tek merkezden statik verileri(borsa) hızlı
 ->redis:dinamik birden fazla sunc varsa bilgilerin ayn ol için
-
+->Receiver alır, Processor işler, Exporter gönderir; Pipeline bunları birbirine bağlayan hattır.
 ->beanlerin içine bilgi yazılmaz işini yapar gider
-->backend cache:caffeine:db yükünü azaltır
+->backend cache:caffeine:db-api yükünü azaltır-server raminde tutar-
+->front cache:apiden gelen datayı kısa süre tutar-sayfalar ramden getirilir-backend fetch süresinden kısa tutar
+
+->staleTime:verinin ne kadar süre taze kabul edleceğ-gcTime:verinin cachde ne kadr
+-> refetchOnWindowFocus: false:kullanıcı sekmeye geri gelirse api cagirma
+->staleTime:kullanici eski veriyi ne kadar süre hemen görsün
+->refetchIntervak:backgrodda apiye ne sıklıkla kontrol icin gidelim
+->java .recordStats():cachle ilgli istatistk tut=HitRate:isteğin yüzde kaçı cacheden karşılandı-MissRate:kaç istekte cachede veri yok-EvictionCount:cacheden kaç kayıt silinmiş-AverageLoadTime:cachesiz sistem ne kadar yavaş olurdu
+
+->JRE, Java uygulamasını çalıştırmak için gereken ortamdır, derleme yapmaz.
+->Maven, Java projesini derleyip jar haline getiren build aracıdır.JDK’nın derleyicisini kullanır ama tüm süreci orkestre eder.
+->özetle:Derleme için Maven’lı imaj kullanıyoruz, çalıştırma için sadece JRE olan daha hafif imaj kullanıyoruz.
+->jdk:hem derler (build) hem de çalıştırır (run).
+
+->Log consumer genelde “arkaplan worker” gibi çalışır:Trafiğe göre ayrı scale edilir (ör. kuyruk büyürse consumer sayısı artırılır).Ayrı kaynak,hata alanı ve deploy edebilmek için ayrılır programdan
+
+->Transitive dependency:Bazı kütüphaneler başkalarını da beraberinde getirir.
+->classPath:javanın kütüpleri aradığı yerler listesi
+->bom:kütüp ailesindeki her şey birbirine uyumlu sürümde olsun
+->otlp:trace/metric göndermeye yarayan iletişim formatı
+->flyway:db'in githubı gibi yapıda değ varsa versiyonlama yapar

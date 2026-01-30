@@ -104,21 +104,43 @@ public class RssFeedService {
             // Başlık
             news.setTitle(cleanText(entry.getTitle()));
 
-            // İçerik ve özet
-            String content = "";
-            String summary = "";
+            // İçerik ve özet ayrı ayrı işle
+            String description = "";
+            String fullContent = "";
 
-            if (entry.getDescription() != null) {
-                content = cleanHtml(entry.getDescription().getValue());
+            // Description varsa al (genelde kısa özet)
+            if (entry.getDescription() != null && entry.getDescription().getValue() != null) {
+                description = cleanHtml(entry.getDescription().getValue());
+            }
+
+            // Contents varsa al (genelde tam içerik)
+            if (entry.getContents() != null && !entry.getContents().isEmpty()) {
+                fullContent = cleanHtml(entry.getContents().get(0).getValue());
+            }
+
+            // Content belirleme: fullContent varsa onu, yoksa description'ı kullan
+            String content = !fullContent.isEmpty() ? fullContent : description;
+
+            // Summary belirleme: description'dan oluştur, çift tekrarı önle
+            String summary = "";
+            if (!description.isEmpty()) {
+                // Description zaten kısaysa direkt kullan
+                summary = truncate(description, 200);
+            } else if (!content.isEmpty()) {
+                // Description yoksa content'ten özet çıkar
                 summary = truncate(content, 200);
             }
 
-            if (entry.getContents() != null && !entry.getContents().isEmpty()) {
-                content = cleanHtml(entry.getContents().get(0).getValue());
+            // Özet ve içerik aynıysa, özeti temizle (gereksiz tekrar)
+            if (summary.equals(content) || (content.startsWith(summary.replace("...", "")))) {
+                // İçerik kısaysa özet gereksiz
+                if (content.length() <= 250) {
+                    summary = "";
+                }
             }
 
             news.setContent(content);
-            news.setSummary(summary.isEmpty() ? truncate(content, 200) : summary);
+            news.setSummary(summary);
 
             // Kaynak
             news.setSource(source.getName());
@@ -148,16 +170,35 @@ public class RssFeedService {
      * HTML etiketlerini temizler
      */
     private String cleanHtml(String html) {
-        if (html == null)
+        if (html == null || html.isEmpty())
             return "";
-        return html.replaceAll("<[^>]*>", "")
+
+        String cleaned = html
+                // HTML etiketlerini kaldır
+                .replaceAll("<[^>]*>", "")
+                // HTML entity'leri decode et
                 .replaceAll("&nbsp;", " ")
                 .replaceAll("&amp;", "&")
                 .replaceAll("&lt;", "<")
                 .replaceAll("&gt;", ">")
                 .replaceAll("&quot;", "\"")
+                .replaceAll("&apos;", "'")
+                .replaceAll("&#8230;", "...")
+                .replaceAll("&#8217;", "'")
+                .replaceAll("&#8216;", "'")
+                .replaceAll("&#8220;", "\"")
+                .replaceAll("&#8221;", "\"")
+                .replaceAll("&#8211;", "-")
+                .replaceAll("&#8212;", "-")
+                .replaceAll("&#39;", "'")
+                .replaceAll("&#34;", "\"")
+                // Numeric HTML entities (genel)
+                .replaceAll("&#(\\d+);", "")
+                // Çoklu boşlukları tek boşluğa indir
                 .replaceAll("\\s+", " ")
                 .trim();
+
+        return cleaned;
     }
 
     /**

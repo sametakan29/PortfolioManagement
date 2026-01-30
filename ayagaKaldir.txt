@@ -11,3 +11,10 @@ npm run dev
 Full stack için:
 docker-compose up --build
 docker-compose build --no-cache frontend
+
+# Tüm servislerin loglarını canlı takip et
+docker-compose logs -f
+# Sadece backend loglarını takip et
+docker-compose logs -f backend
+# Sadece son 50 satır + canlı takip
+docker-compose logs -f --tail=50 backend

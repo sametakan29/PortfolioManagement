@@ -5,9 +5,10 @@
  * React Query hook'larını içerir.
  * 
  * Cache Stratejisi:
- * - Döviz: 5 dk cache, 3 dk background refetch (sık değişen veri)
- * - Hisse: 5 dk cache, 5 dk refetch (orta sıklıkta değişir)
- * - Tahvil/Fon: 30 dk cache (nadir değişir)
+ * - Döviz: 3 dk cache, 2 dk background refetch (Backend: 5dk)
+ * - Hisse: 7 dk cache, 5 dk refetch (Backend: 10dk)
+ * - Tahvil/Fon: 50 dk cache (Backend: 60dk)
+ * - VIOP: 7 dk cache (Backend: 10dk)
  * - Haberler: 2 dk cache (sık güncellenir)
  * - Kategoriler: 1 saat cache (nadiren değişir)
  * 
@@ -24,7 +25,7 @@ import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage } fro
 /**
  * Döviz kurları hook'u
  * Backend'de her 5 dakikada bir güncelleniyor
- * Frontend'de 5 dakika cache'leniyor, 3 dakikada bir background'da yenileniyor
+ * Frontend'de 3 dakika cache'leniyor, 2 dakikada bir background'da yenileniyor
  */
 export const useForexRates = () => {
     return useQuery<Record<string, ForexRate>>({
@@ -33,15 +34,15 @@ export const useForexRates = () => {
             const response = await forexApi.getForexRates()
             return response.data
         },
-        staleTime: 5 * 60 * 1000, // 5 dakika - backend cache ile sync
-        refetchInterval: 3 * 60 * 1000, // 3 dakikada bir background'da yenile
+        staleTime: 3 * 60 * 1000, // 3 dakika - backend cache'den kısa (5dk)
+        refetchInterval: 2 * 60 * 1000, // 2 dakikada bir background'da yenile
     })
 }
 
 /**
  * Hisse senetleri hook'u
  * Backend'de her 10 dakikada bir güncelleniyor
- * Frontend'de 5 dakika cache, 5 dakikada bir background refetch
+ * Frontend'de 7 dakika cache, 5 dakikada bir background refetch
  */
 export const useStocks = (symbols?: string[]) => {
     return useQuery<Record<string, StockData>>({
@@ -50,7 +51,7 @@ export const useStocks = (symbols?: string[]) => {
             const response = await stockApi.getStocks(symbols)
             return response.data
         },
-        staleTime: 5 * 60 * 1000, // 5 dakika
+        staleTime: 7 * 60 * 1000, // 7 dakika - backend cache'den kısa (10dk)
         refetchInterval: 5 * 60 * 1000, // 5 dakikada bir yenile
     })
 }
@@ -65,7 +66,7 @@ export const useStock = (symbol: string) => {
             const response = await stockApi.getStock(symbol)
             return response.data
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 7 * 60 * 1000, // 7 dakika - backend cache'den kısa (10dk)
         refetchInterval: 5 * 60 * 1000,
         enabled: !!symbol, // symbol varsa çalış
     })
@@ -74,7 +75,7 @@ export const useStock = (symbol: string) => {
 /**
  * Tahvil verileri hook'u
  * Backend'de her saat başı güncelleniyor
- * Frontend'de 30 dakika cache, 30 dakikada bir refetch
+ * Frontend'de 50 dakika cache, 45 dakikada bir refetch
  */
 export const useBonds = () => {
     return useQuery<BondData[]>({
@@ -83,8 +84,8 @@ export const useBonds = () => {
             const response = await bondApi.getBonds()
             return response.data
         },
-        staleTime: 30 * 60 * 1000, // 30 dakika
-        refetchInterval: 30 * 60 * 1000,
+        staleTime: 50 * 60 * 1000, // 50 dakika - backend cache'den kısa (60dk)
+        refetchInterval: 45 * 60 * 1000, // 45 dakika
     })
 }
 
@@ -99,7 +100,7 @@ export const useViopData = () => {
             const response = await viopApi.getViopInstruments()
             return response.data
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 7 * 60 * 1000, // 7 dakika - backend cache'den kısa (10dk)
         refetchInterval: 5 * 60 * 1000,
     })
 }
@@ -115,8 +116,8 @@ export const useFunds = () => {
             const response = await fundApi.getFunds()
             return response.data
         },
-        staleTime: 30 * 60 * 1000,
-        refetchInterval: 30 * 60 * 1000,
+        staleTime: 50 * 60 * 1000, // 50 dakika - backend cache'den kısa (60dk)
+        refetchInterval: 45 * 60 * 1000, // 45 dakika
     })
 }
 
