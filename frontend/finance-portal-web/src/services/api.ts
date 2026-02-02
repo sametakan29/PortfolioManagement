@@ -219,7 +219,9 @@ export const forexApi = {
             )
 
             if (response.data.result === 'success') {
-                const currencyNames: Record<string, string> = {
+                const forexRates: Record<string, ForexRate> = {}
+
+                const knownNames: Record<string, string> = {
                     'USD': 'Amerikan Doları',
                     'EUR': 'Euro',
                     'GBP': 'İngiliz Sterlini',
@@ -232,21 +234,17 @@ export const forexApi = {
                     'KWD': 'Kuveyt Dinarı'
                 }
 
-                const forexRates: Record<string, ForexRate> = {}
-
-                Object.entries(currencyNames).forEach(([code, name]) => {
-                    const rate = response.data.conversion_rates[code]
-                    if (rate) {
-                        // TRY bazlı olduğu için ters çeviriyoruz (1 USD = X TRY)
-                        const tryRate = 1 / rate
-                        forexRates[code] = {
-                            code,
-                            name,
-                            rate: tryRate,
-                            buyRate: tryRate * 0.998, // %0.2 spread ile alış
-                            sellRate: tryRate * 1.002, // %0.2 spread ile satış
-                            timestamp: response.data.time_last_update_utc
-                        }
+                Object.entries(response.data.conversion_rates).forEach(([code, rate]) => {
+                    if (!rate) return
+                    // TRY bazlı olduğu için ters çeviriyoruz (1 USD = X TRY)
+                    const tryRate = 1 / rate
+                    forexRates[code] = {
+                        code,
+                        name: knownNames[code] ?? code,
+                        rate: tryRate,
+                        buyRate: tryRate * 0.998, // %0.2 spread ile alış
+                        sellRate: tryRate * 1.002, // %0.2 spread ile satış
+                        timestamp: response.data.time_last_update_utc
                     }
                 })
 
