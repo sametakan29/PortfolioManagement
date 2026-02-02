@@ -11,6 +11,7 @@
  * API: useForexRates() hook'u -> /api/forex/rates
  */
 
+import { useState } from 'react'
 import {
     Container,
     Typography,
@@ -19,10 +20,14 @@ import {
     Paper,
     CircularProgress,
     Alert,
+    Card,
+    CardContent,
+    Button,
+    Stack,
 } from '@mui/material'
 import { CurrencyExchange } from '@mui/icons-material'
 import StatCard from '../components/StatCard'
-import FinancialTable, { Column, formatCurrency } from '../components/FinancialTable'
+import { formatCurrency } from '../components/FinancialTable'
 import { useForexRates } from '../hooks/useFinanceData'
 import type { ForexRate } from '../services/api'
 
@@ -48,14 +53,20 @@ interface ForexTableData extends ForexRate {
 export default function Forex() {
     // API'den döviz kurlarını çek (5 dakika cache)
     const { data: forexRates, isLoading, error } = useForexRates()
+    const [visibleCount, setVisibleCount] = useState(20)
 
     // Döviz verilerini tablo formatına dönüştür
     const forexList: ForexTableData[] = forexRates
         ? Object.values(forexRates).map(rate => ({
             ...rate,
-            flag: currencyInfo[rate.code]?.flag || '💱'
+            flag: currencyInfo[rate.code]?.flag || ''
         }))
         : []
+
+    const visibleList = forexList.slice(0, visibleCount)
+    const hasMore = forexList.length > visibleCount
+    const canScrollTop = visibleList.length > 0
+
 
     // Ana kurları al
     const usd = forexRates?.['USD']
@@ -63,65 +74,6 @@ export default function Forex() {
     const gbp = forexRates?.['GBP']
     const chf = forexRates?.['CHF']
 
-    // Tablo sütunları
-    const columns: Column<ForexTableData>[] = [
-        {
-            id: 'code',
-            label: 'Döviz',
-            minWidth: 200,
-            format: (value, row) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6">{row.flag}</Typography>
-                    <Box>
-                        <Typography variant="body2" fontWeight={600}>{value}/TRY</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            {row.name}
-                        </Typography>
-                    </Box>
-                </Box>
-            )
-        },
-        {
-            id: 'rate',
-            label: 'Kur',
-            minWidth: 120,
-            align: 'right',
-            format: (value) => (
-                <Typography fontWeight={700}>
-                    {formatCurrency(value)}
-                </Typography>
-            )
-        },
-        {
-            id: 'buyRate',
-            label: 'Alış',
-            minWidth: 120,
-            align: 'right',
-            format: (value) => (
-                <Typography color="success.main">
-                    {formatCurrency(value)}
-                </Typography>
-            )
-        },
-        {
-            id: 'sellRate',
-            label: 'Satış',
-            minWidth: 120,
-            align: 'right',
-            format: (value) => (
-                <Typography color="error.main">
-                    {formatCurrency(value)}
-                </Typography>
-            )
-        },
-        {
-            id: 'timestamp',
-            label: 'Güncelleme',
-            minWidth: 150,
-            align: 'center',
-            format: (value) => value ? new Date(value).toLocaleString('tr-TR') : '-'
-        },
-    ]
 
     // Hata durumu
     if (error) {
@@ -190,7 +142,7 @@ export default function Forex() {
                 </Grid>
             </Grid>
 
-            {/* Döviz Tablosu */}
+            {/* Döviz Listesi */}
             <Paper sx={{ width: '100%', p: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <CurrencyExchange color="primary" />
@@ -203,15 +155,103 @@ export default function Forex() {
                     <Box display="flex" justifyContent="center" p={4}>
                         <CircularProgress />
                     </Box>
+                ) : forexList.length > 0 ? (
+                    <Grid container spacing={2}>
+                        {visibleList.map((rate) => (
+                            <Grid item xs={12} key={rate.code}>
+                                <Card
+                                    variant="outlined"
+                                    sx={{
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 10px 24px rgba(15, 23, 42, 0.1)',
+                                            borderColor: 'rgba(27, 77, 255, 0.4)',
+                                        },
+                                    }}
+                                >
+                                    <CardContent>
+                                        <Box
+                                            display="flex"
+                                            alignItems={{ xs: 'flex-start', md: 'center' }}
+                                            justifyContent="space-between"
+                                            gap={2}
+                                            flexWrap={{ xs: 'wrap', md: 'nowrap' }}
+                                        >
+                                            <Box minWidth={{ md: 220 }}>
+                                                <Typography variant="h6" component="div">
+                                                    {rate.flag ? `${rate.flag} ` : ''}{rate.code}/TRY
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {rate.name}
+                                                </Typography>
+                                            </Box>
+
+                                            <Box display="flex" alignItems="center" gap={3} flexWrap="wrap">
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Kur
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight={700}>
+                                                        {formatCurrency(rate.rate)}
+                                                    </Typography>
+                                                </Box>
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Alış
+                                                    </Typography>
+                                                    <Typography color="success.main" fontWeight={600}>
+                                                        {formatCurrency(rate.buyRate)}
+                                                    </Typography>
+                                                </Box>
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Satış
+                                                    </Typography>
+                                                    <Typography color="error.main" fontWeight={600}>
+                                                        {formatCurrency(rate.sellRate)}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+
+                                            <Typography variant="caption" color="text.secondary">
+                                                {rate.timestamp ? new Date(rate.timestamp).toLocaleString('tr-TR') : '-'}
+                                            </Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
                 ) : (
-                    <FinancialTable
-                        columns={columns}
-                        data={forexList}
-                        loading={isLoading}
-                        emptyMessage="Döviz verisi bulunamadı"
-                    />
+                    <Typography variant="body2" color="text.secondary">
+                        Döviz verisi bulunamadı
+                    </Typography>
                 )}
             </Paper>
+
+            {(hasMore || canScrollTop) && (
+                <Box display="flex" justifyContent="center" mt={3}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                        {hasMore && (
+                            <Button
+                                variant="outlined"
+                                onClick={() => setVisibleCount((prev) => prev + 20)}
+                            >
+                                Daha fazla göster
+                            </Button>
+                        )}
+                        {canScrollTop && (
+                            <Button
+                                variant="text"
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            >
+                                Başa dön
+                            </Button>
+                        )}
+                    </Stack>
+                </Box>
+            )}
         </Container>
     )
 }
