@@ -17,6 +17,7 @@ import {
     Typography,
     Grid,
     Card,
+    CardActionArea,
     CardContent,
     Box,
     CircularProgress,
@@ -27,14 +28,16 @@ import {
     Button,
     Stack,
 } from '@mui/material'
-import { TrendingUp, TrendingDown, Search, ExpandMore, ExpandLess } from '@mui/icons-material'
+import { TrendingUp, TrendingDown, Search, ExpandMore } from '@mui/icons-material'
 import { useStocks } from '../hooks/useFinanceData'
+import { useNavigate } from 'react-router-dom'
 //import type { StockData } from '../services/api'
 
 export default function StockInfo() {
     const { data: stocks, isLoading, error } = useStocks()
     const [searchTerm, setSearchTerm] = useState('')
-    const [showAll, setShowAll] = useState(false)
+    const [visibleCount, setVisibleCount] = useState(20)
+    const navigate = useNavigate()
 
     const stockList = stocks ? Object.entries(stocks).map(([key, value]) => ({ key, ...value })) : []
     const filteredStocks = useMemo(() => {
@@ -47,8 +50,9 @@ export default function StockInfo() {
         })
     }, [stockList, searchTerm])
 
-    const visibleStocks = showAll ? filteredStocks : filteredStocks.slice(0, 10)
-    const hasMore = filteredStocks.length > 10
+    const visibleStocks = filteredStocks.slice(0, visibleCount)
+    const hasMore = filteredStocks.length > visibleCount
+    const canScrollTop = visibleStocks.length > 0
 
     return (
         <Paper sx={{ p: 3 }}>
@@ -74,7 +78,7 @@ export default function StockInfo() {
                     value={searchTerm}
                     onChange={(e) => {
                         setSearchTerm(e.target.value)
-                        setShowAll(false)
+                        setVisibleCount(20)
                     }}
                     InputProps={{
                         startAdornment: (
@@ -102,47 +106,94 @@ export default function StockInfo() {
                 <>
                     <Grid container spacing={2}>
                         {visibleStocks.map((stock) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={stock.key}>
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                                        <Typography variant="h6" component="div">
-                                            {stock.symbol}
+                        <Grid item xs={12} key={stock.key}>
+                            <Card
+                                variant="outlined"
+                                sx={{
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
+                                        borderColor: 'rgba(27, 77, 255, 0.4)',
+                                    },
+                                }}
+                            >
+                                <CardActionArea
+                                    onClick={() => navigate(`/stocks/${stock.symbol}`)}
+                                    sx={{ height: '100%' }}
+                                >
+                                    <CardContent>
+                                    <Box
+                                        display="flex"
+                                        alignItems={{ xs: 'flex-start', md: 'center' }}
+                                        justifyContent="space-between"
+                                        gap={2}
+                                        flexWrap={{ xs: 'wrap', md: 'nowrap' }}
+                                    >
+                                        <Box minWidth={{ md: 220 }}>
+                                            <Typography variant="h6" component="div">
+                                                {stock.symbol}
+                                            </Typography>
+                                        </Box>
+
+                                        <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Fiyat
+                                                </Typography>
+                                                <Typography variant="h6" color="primary">
+                                                    ₺{stock.price.toFixed(2)}
+                                                </Typography>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Hacim
+                                                </Typography>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {(stock.volume / 1000000).toFixed(2)}M
+                                                </Typography>
+                                            </Box>
+                                            {stock.changePercent !== undefined && (
+                                                <Chip
+                                                    icon={stock.changePercent >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                                    label={`${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%`}
+                                                    color={stock.changePercent >= 0 ? 'success' : 'error'}
+                                                    size="small"
+                                                />
+                                            )}
+                                        </Box>
+
+                                        <Typography variant="caption" color="text.secondary">
+                                            Detaylar için tıkla
                                         </Typography>
-                                        {stock.changePercent !== undefined && (
-                                            <Chip
-                                                icon={stock.changePercent >= 0 ? <TrendingUp /> : <TrendingDown />}
-                                                label={`${stock.changePercent >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%`}
-                                                color={stock.changePercent >= 0 ? 'success' : 'error'}
-                                                size="small"
-                                            />
-                                        )}
                                     </Box>
-                                    <Typography color="textSecondary" fontSize="0.875rem">
-                                        {stock.name}
-                                    </Typography>
-                                    <Box mt={1}>
-                                        <Typography variant="h6" color="primary">
-                                            ₺{stock.price.toFixed(2)}
-                                        </Typography>
-                                        <Typography variant="body2" color="textSecondary">
-                                            Hacim: {(stock.volume / 1000000).toFixed(2)}M
-                                        </Typography>
-                                    </Box>
-                                </CardContent>
+                                    </CardContent>
+                                </CardActionArea>
                             </Card>
                         </Grid>
                         ))}
                     </Grid>
-                    {hasMore && (
+                    {(hasMore || canScrollTop) && (
                         <Box display="flex" justifyContent="center" mt={3}>
-                            <Button
-                                variant="outlined"
-                                onClick={() => setShowAll((prev) => !prev)}
-                                endIcon={showAll ? <ExpandLess /> : <ExpandMore />}
-                            >
-                                {showAll ? 'Daha az göster' : 'Daha fazla göster'}
-                            </Button>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                {hasMore && (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => setVisibleCount((prev) => prev + 20)}
+                                        endIcon={<ExpandMore />}
+                                    >
+                                        Daha fazla göster
+                                    </Button>
+                                )}
+                                {canScrollTop && (
+                                    <Button
+                                        variant="text"
+                                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                    >
+                                        Başa dön
+                                    </Button>
+                                )}
+                            </Stack>
                         </Box>
                     )}
                 </>
