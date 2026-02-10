@@ -12,7 +12,7 @@ export default function Stocks() {
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                 <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
                     Hisse Senetleri
                 </Typography>
@@ -26,6 +26,11 @@ export default function Stocks() {
                     />
                 )}
             </Box>
+            {marketStatus && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    {marketStatus.title} — {marketStatus.description}
+                </Typography>
+            )}
             <StockInfo />
         </Container>
     )
