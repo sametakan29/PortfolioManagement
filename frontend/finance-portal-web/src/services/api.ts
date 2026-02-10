@@ -168,6 +168,31 @@ export interface StockData {
     timestamp: string
 }
 
+export interface StockDetailData {
+    symbol: string
+    name: string
+    price: number
+    change: number
+    changePercent: number
+    volume: number
+    marketCap: number
+    timestamp: string
+    // Detailed metrics
+    high: number
+    low: number
+    open: number
+    previousClose: number
+    dayRange: string
+    yearRange: string
+    peRatio?: number
+    eps?: number
+    dividendYield?: number
+    beta?: number
+    averageVolume?: number
+    sector?: string
+    industry?: string
+}
+
 // Bond API Types
 export interface BondData {
     symbol: string
@@ -266,6 +291,8 @@ export const stockApi = {
         }),
     getStock: (symbol: string) =>
         apiClient.get<StockData>(`/stocks/${symbol}`),
+    getStockDetails: (symbol: string) =>
+        apiClient.get<StockDetailData>(`/stocks/${symbol}/details`),
 }
 
 // Bond API Functions

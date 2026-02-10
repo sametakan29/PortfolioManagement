@@ -20,7 +20,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi } from '../services/api'
-import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage } from '../services/api'
+import type { ForexRate, StockData, StockDetailData, BondData, ViopData, FundData, NewsPage } from '../services/api'
 
 /**
  * Döviz kurları hook'u
@@ -67,6 +67,23 @@ export const useStock = (symbol: string) => {
             return response.data
         },
         staleTime: 7 * 60 * 1000, // 7 dakika - backend cache'den kısa (10dk)
+        refetchInterval: 5 * 60 * 1000,
+        enabled: !!symbol, // symbol varsa çalış
+    })
+}
+
+/**
+ * Hisse detay hook'u
+ * Detaylı metrikler ve grafik verileri için
+ */
+export const useStockDetail = (symbol: string) => {
+    return useQuery<StockDetailData>({
+        queryKey: ['stockDetail', symbol],
+        queryFn: async () => {
+            const response = await stockApi.getStockDetails(symbol)
+            return response.data
+        },
+        staleTime: 5 * 60 * 1000, // 5 dakika
         refetchInterval: 5 * 60 * 1000,
         enabled: !!symbol, // symbol varsa çalış
     })
