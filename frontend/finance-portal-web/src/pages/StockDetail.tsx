@@ -33,7 +33,7 @@ export default function StockDetail() {
 
     useEffect(() => {
         if (symbol) {
-            document.title = `${symbol.toUpperCase()} Detayları - Portfolio Management`
+            document.title = `${symbol.toUpperCase()} - Portfolio Management`
         }
     }, [symbol])
 
