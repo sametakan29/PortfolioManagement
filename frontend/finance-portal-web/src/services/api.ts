@@ -258,6 +258,36 @@ export const forexApi = {
     },
 }
 
+// Stock Chart API Types
+export interface ChartPoint {
+    timestamp: number
+    open: number | null
+    high: number | null
+    low: number | null
+    close: number | null
+    volume: number | null
+}
+
+export interface ChartResponse {
+    symbol: string
+    range: string
+    interval: string
+    currency: string
+    previousClose: number
+    regularMarketPrice: number
+    shortName: string
+    data: ChartPoint[]
+}
+
+export type ChartRange = '1d' | '5d' | '1mo' | '3mo' | '1y' | '5y'
+export type ChartInterval = '5m' | '60m' | '1d' | '1wk'
+
+export interface RangeOption {
+    range: ChartRange
+    interval: ChartInterval
+    label: string
+}
+
 // Stock API Functions
 export const stockApi = {
     getStocks: (symbols?: string[]) =>
@@ -266,6 +296,10 @@ export const stockApi = {
         }),
     getStock: (symbol: string) =>
         apiClient.get<StockData>(`/stocks/${symbol}`),
+    getChart: (symbol: string, range: ChartRange, interval: ChartInterval) =>
+        apiClient.get<ChartResponse>(`/stocks/${symbol}/chart`, {
+            params: { range, interval }
+        }),
 }
 
 // Bond API Functions

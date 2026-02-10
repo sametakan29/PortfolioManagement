@@ -20,7 +20,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi } from '../services/api'
-import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage } from '../services/api'
+import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage, ChartResponse, ChartRange, ChartInterval } from '../services/api'
 
 /**
  * Döviz kurları hook'u
@@ -69,6 +69,27 @@ export const useStock = (symbol: string) => {
         staleTime: 7 * 60 * 1000, // 7 dakika - backend cache'den kısa (10dk)
         refetchInterval: 5 * 60 * 1000,
         enabled: !!symbol, // symbol varsa çalış
+    })
+}
+
+/**
+ * Hisse grafik verisi hook'u
+ * Yahoo Finance v8 API üzerinden tarihsel fiyat verileri
+ * 
+ * @param symbol Hisse sembolü (e.g., THYAO)
+ * @param range Zaman aralığı: 1d, 5d, 1mo, 3mo, 1y, 5y
+ * @param interval Veri sıklığı: 5m, 60m, 1d, 1wk
+ */
+export const useStockChart = (symbol: string, range: ChartRange, interval: ChartInterval) => {
+    return useQuery<ChartResponse>({
+        queryKey: ['stockChart', symbol, range, interval],
+        queryFn: async () => {
+            const response = await stockApi.getChart(symbol, range, interval)
+            return response.data
+        },
+        staleTime: 3 * 60 * 1000, // 3 dakika
+        refetchInterval: 2 * 60 * 1000, // 2 dakikada yenile
+        enabled: !!symbol,
     })
 }
 

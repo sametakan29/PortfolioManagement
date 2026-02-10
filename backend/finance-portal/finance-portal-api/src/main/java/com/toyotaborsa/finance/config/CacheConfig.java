@@ -31,6 +31,7 @@ public class CacheConfig {
         cacheManager.setCaches(Arrays.asList(
                 buildCache("forexRates", 8), // Döviz: 8 dk
                 buildCache("stockData", 15), // Hisse: 15 dk
+                buildCache("stockChart", 5), // Hisse Grafik: 5 dk
                 buildCache("bondData", 90), // Tahvil: 90 dk
                 buildCache("viopData", 15), // VIOP: 15 dk
                 buildCache("fundData", 90) // Fon: 90 dk

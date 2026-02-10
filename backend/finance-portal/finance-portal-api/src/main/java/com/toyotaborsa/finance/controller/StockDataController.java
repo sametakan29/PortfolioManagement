@@ -1,5 +1,6 @@
 package com.toyotaborsa.finance.controller;
 
+import com.toyotaborsa.finance.service.StockChartService;
 import com.toyotaborsa.finance.service.StockDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Hisse Senedi (Stock) Veri API Controller
@@ -26,6 +28,10 @@ public class StockDataController {
 
     // StockDataService enjekte (Lombok @RequiredArgsConstructor ile)
     private final StockDataService stockDataService;
+    private final StockChartService stockChartService;
+
+    private static final Set<String> VALID_RANGES = Set.of("1d", "5d", "1mo", "3mo", "1y", "5y");
+    private static final Set<String> VALID_INTERVALS = Set.of("5m", "15m", "60m", "1d", "1wk", "1mo");
 
     /**
      * Hisse Verilerini Getir (Tüm veya Filtrelı)
@@ -96,5 +102,32 @@ public class StockDataController {
 
         // Bulunan hisseyi 200 OK ile döndür
         return ResponseEntity.ok(stock);
+    }
+
+    /**
+     * Hisse Grafik Verisi - Yahoo Finance v8 API
+     * 
+     * GET /api/stocks/{symbol}/chart?range=1mo&interval=1d
+     * 
+     * @param symbol   Hisse sembolü (THYAO, GARAN, ASELS vb.)
+     * @param range    Zaman aralığı: 1d, 5d, 1mo, 3mo, 1y, 5y
+     * @param interval Veri sıklığı: 5m, 60m, 1d, 1wk
+     * @return ChartResponse grafik verisi
+     */
+    @GetMapping("/{symbol}/chart")
+    public ResponseEntity<StockChartService.ChartResponse> getChart(
+            @PathVariable String symbol,
+            @RequestParam(defaultValue = "1mo") String range,
+            @RequestParam(defaultValue = "1d") String interval) {
+
+        if (!VALID_RANGES.contains(range)) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!VALID_INTERVALS.contains(interval)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        StockChartService.ChartResponse chart = stockChartService.getChart(symbol, range, interval);
+        return ResponseEntity.ok(chart);
     }
 }
