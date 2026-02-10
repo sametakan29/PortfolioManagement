@@ -34,3 +34,4 @@
 ->bom:kütüp ailesindeki her şey birbirine uyumlu sürümde olsun
 ->otlp:trace/metric göndermeye yarayan iletişim formatı
 ->flyway:db'in githubı gibi yapıda değ varsa versiyonlama yapar
+->cdn:mükemmel bir şeymiş en yakın sunucudan kullanıcıya veriyi verir

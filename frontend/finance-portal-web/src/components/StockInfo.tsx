@@ -29,6 +29,7 @@ import {
     Stack,
 } from '@mui/material'
 import { TrendingUp, TrendingDown, Search, ExpandMore } from '@mui/icons-material'
+import BistIcon from './BistIcon'
 import { useStocks } from '../hooks/useFinanceData'
 import { useNavigate } from 'react-router-dom'
 //import type { StockData } from '../services/api'
@@ -130,7 +131,8 @@ export default function StockInfo() {
                                         gap={2}
                                         flexWrap={{ xs: 'wrap', md: 'nowrap' }}
                                     >
-                                        <Box minWidth={{ md: 220 }}>
+                                        <Box minWidth={{ md: 220 }} display="flex" alignItems="center" gap={1.5}>
+                                            <BistIcon name={stock.symbol} size={32} style={{ borderRadius: 6, flexShrink: 0 }} />
                                             <Typography variant="h6" component="div">
                                                 {stock.symbol}
                                             </Typography>

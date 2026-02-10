@@ -18,7 +18,6 @@ import {
     ArrowBack,
     TrendingUp,
     TrendingDown,
-    CandlestickChart,
     BarChart as BarChartIcon,
     AccessTime,
 } from '@mui/icons-material'
@@ -35,6 +34,7 @@ import {
     Bar,
 } from 'recharts'
 import { useStock, useStockChart } from '../hooks/useFinanceData'
+import BistIcon from '../components/BistIcon'
 import type { ChartRange, ChartInterval, RangeOption } from '../services/api'
 
 /**
@@ -212,7 +212,7 @@ export default function StockDetail() {
                 >
                     <Box>
                         <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
-                            <CandlestickChart color="primary" sx={{ fontSize: 32 }} />
+                            <BistIcon name={upperSymbol} size={48} style={{ borderRadius: 8, flexShrink: 0 }} />
                             <Typography variant="h4" fontWeight={700}>
                                 {upperSymbol}
                             </Typography>
