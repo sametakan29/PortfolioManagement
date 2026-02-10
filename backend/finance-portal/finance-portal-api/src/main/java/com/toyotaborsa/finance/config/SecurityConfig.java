@@ -76,6 +76,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/viop/**").permitAll()
                         // Fon verileri (dev/test için açık)
                         .requestMatchers("/api/funds/**").permitAll()
+                        // Piyasa durumu (herkese açık)
+                        .requestMatchers("/api/market/**").permitAll()
                         // Diğer tüm request'ler: Kimlik doğrulama ZORUNLU
                         .anyRequest().authenticated())
                 // OAuth2 Resource Server: Keycloak'tan gelen JWT token'ı kontrol et

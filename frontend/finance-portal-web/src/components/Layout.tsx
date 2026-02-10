@@ -12,7 +12,6 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Chip,
     Stack,
 } from '@mui/material'
 import {
@@ -75,9 +74,6 @@ export default function Layout({ children }: LayoutProps) {
                     </Typography>
                 </Stack>
             </Toolbar>
-            <Box sx={{ px: 3, pb: 2 }}>
-                <Chip label="Canlı veri" color="success" size="small" />
-            </Box>
             <Divider />
             <List sx={{ px: 2, py: 1 }}>
                 {menuItems.map((item) => (
@@ -174,12 +170,13 @@ export default function Layout({ children }: LayoutProps) {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: { xs: 2, sm: 3 },
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                 }}/*burada render edilir kalıtımdan gelen*/
             >
                 <Toolbar />
-                {children}
+                <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                    {children}
+                </Box>
             </Box>
         </Box>
     )

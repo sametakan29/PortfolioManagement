@@ -134,6 +134,21 @@ export const newsApi = {
         apiClient.delete(`/news/${id}`),
 }
 
+// Market Status API Types
+export interface MarketStatus {
+    session: string
+    title: string
+    description: string
+    isOpen: boolean
+    timestamp: string
+}
+
+// Market API Functions
+export const marketApi = {
+    getStatus: () =>
+        apiClient.get<MarketStatus>('/market/status'),
+}
+
 // Forex API Types
 export interface ForexRate {
     code: string

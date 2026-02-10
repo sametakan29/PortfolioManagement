@@ -19,8 +19,25 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi } from '../services/api'
-import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage, ChartResponse, ChartRange, ChartInterval } from '../services/api'
+import { forexApi, stockApi, bondApi, viopApi, fundApi, newsApi, marketApi } from '../services/api'
+import type { ForexRate, StockData, BondData, ViopData, FundData, NewsPage, ChartResponse, ChartRange, ChartInterval, MarketStatus } from '../services/api'
+
+/**
+ * Piyasa durumu hook'u
+ * Backend'den BIST seans bilgisini çeker
+ * Her 30 saniyede bir kontrol eder (seans geçişlerini yakalamak için)
+ */
+export const useMarketStatus = () => {
+    return useQuery<MarketStatus>({
+        queryKey: ['marketStatus'],
+        queryFn: async () => {
+            const response = await marketApi.getStatus()
+            return response.data
+        },
+        staleTime: 30 * 1000, // 30 saniye
+        refetchInterval: 30 * 1000, // 30 saniyede bir kontrol et
+    })
+}
 
 /**
  * Döviz kurları hook'u
